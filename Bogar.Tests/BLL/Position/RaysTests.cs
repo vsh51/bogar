@@ -25,7 +25,7 @@ public class RaysTests
     public void GetRayNorthTest()
     {
         Assert.Equal(0x0000000000000000UL, Rays.GetRayNorth(Square.C8));
-        Assert.Equal(0x0020202020202000UL, Rays.GetRayNorth(Square.F2));
+        Assert.Equal(0x2020202020200000UL, Rays.GetRayNorth(Square.F2));
         Assert.Equal(0x0101010101010100UL, Rays.GetRayNorth(Square.A1));
     }
 
@@ -40,7 +40,7 @@ public class RaysTests
     [Fact]
     public void GetRayDiagonalTest()
     {
-        Assert.Equal(0x0000008040201008UL, Rays.GetRayDiagonal(Square.B1));
+        Assert.Equal(0x080402010080402UL, Rays.GetRayDiagonal(Square.B1));
         Assert.Equal(0x0100000000000000UL, Rays.GetRayDiagonal(Square.A8));
         Assert.Equal(0x0000000000000080UL, Rays.GetRayDiagonal(Square.H1));
     }
@@ -73,7 +73,7 @@ public class RaysTests
     public void GetRayNorthWestTest()
     {
         Assert.Equal(0x0000000000000000UL, Rays.GetRayNorthWest(Square.A1));
-        Assert.Equal(0x0001020408102040UL, Rays.GetRayNorthWest(Square.H1));
+        Assert.Equal(0x0102040810204000UL, Rays.GetRayNorthWest(Square.H1));
         Assert.Equal(0x0000000000000000UL, Rays.GetRayNorthWest(Square.A8));
     }
 
@@ -89,8 +89,8 @@ public class RaysTests
     public void GetRayBetweenTest()
     {
         Assert.Equal(0x000000000000007EUL, Rays.GetRayBetween(Square.A1, Square.H1));
-        Assert.Equal(0x0000000404040400UL, Rays.GetRayBetween(Square.C2, Square.C7));
-        Assert.Equal(0x0000204081020400UL, Rays.GetRayBetween(Square.A8, Square.H1));
+        Assert.Equal(0x0000040404040000UL, Rays.GetRayBetween(Square.C2, Square.C7));
+        Assert.Equal(0x0002040810204000UL, Rays.GetRayBetween(Square.A8, Square.H1));
         Assert.Equal(0x0000000008040200UL, Rays.GetRayBetween(Square.A1, Square.E5));
 
         var ab = Rays.GetRayBetween(Square.A3, Square.F3);
