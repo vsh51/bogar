@@ -8,28 +8,28 @@ public class PieceTests
     [Fact]
     public void MakePieceTest()
     {
-        var piece = PieceUtils.MakePiece(Color.Black, PieceType.Queen);
+        var piece = PieceExtensions.MakePiece(Color.Black, PieceType.Queen);
         Assert.Equal(Piece.BlackQueen, piece);
     }
 
     [Fact]
     public void ColorOfPieceTest()
     {
-        Assert.Equal(Color.White, PieceUtils.ColorOfPiece(Piece.WhitePawn));
-        Assert.Equal(Color.Black, PieceUtils.ColorOfPiece(Piece.BlackRook));
+        Assert.Equal(Color.White, Piece.WhitePawn.ColorOfPiece());
+        Assert.Equal(Color.Black, Piece.BlackRook.ColorOfPiece());
     }
 
     [Fact]
     public void TypeOfPieceTest()
     {
-        Assert.Equal(PieceType.King, PieceUtils.TypeOfPiece(Piece.BlackKing));
-        Assert.Equal(PieceType.Pawn, PieceUtils.TypeOfPiece(Piece.WhitePawn));
+        Assert.Equal(PieceType.King, Piece.BlackKing.TypeOfPiece());
+        Assert.Equal(PieceType.Pawn, Piece.WhitePawn.TypeOfPiece());
     }
 
     [Fact]
     public void NoPieceTest()
     {
-        Assert.Equal(PieceType.NoPieceType, PieceUtils.TypeOfPiece(Piece.NoPiece));
-        Assert.Equal(Color.White, PieceUtils.ColorOfPiece(Piece.NoPiece));
+        Assert.Equal(PieceType.NoPieceType, Piece.NoPiece.TypeOfPiece());
+        Assert.Equal(Color.White, Piece.NoPiece.ColorOfPiece());
     }
 }
