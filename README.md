@@ -14,6 +14,7 @@ bogar/
 ├── Bogar.sln                # main solution
 ├── Bogar.BLL/               # business logic layer
 ├── Bogar.DAL/               # data access layer (stub)
+├── Bogar.UI/                # Presentation layer (UI)
 ├── Bogar.Tests/             # xUnit tests
 ├── BogarConsoleApp.sln
 ├── BogarConsoleApp/         # console tool for DB inspection
