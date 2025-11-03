@@ -1,0 +1,69 @@
+namespace Bogar.BLL.Core;
+
+public enum Square : int
+{
+    SQ_NONE = -1,
+
+    A1 = 0, B1, C1, D1, E1, F1, G1, H1,
+    A2, B2, C2, D2, E2, F2, G2, H2,
+    A3, B3, C3, D3, E3, F3, G3, H3,
+    A4, B4, C4, D4, E4, F4, G4, H4,
+    A5, B5, C5, D5, E5, F5, G5, H5,
+    A6, B6, C6, D6, E6, F6, G6, H6,
+    A7, B7, C7, D7, E7, F7, G7, H7,
+    A8, B8, C8, D8, E8, F8, G8, H8,
+
+    SQ_COUNT
+}
+
+public static class SquareExtensions
+{
+    public static ulong ToBitboard(this Square square)
+    {
+        if (square < 0 || square >= Square.SQ_COUNT)
+            return 0UL;
+
+        return 1UL << (int)square;
+    }
+
+    public static Square ToSquare(this ulong bitboard)
+    {
+        if (bitboard == 0 || (bitboard & (bitboard - 1)) != 0)
+            return Square.SQ_NONE;
+
+        int index = Bitboard.BitScanForward(bitboard);
+        return (Square)index;
+    }
+
+    public static int GetFile(this Square square)
+        => (int)square % 8;
+
+    public static int GetRank(this Square square)
+        => (int)square / 8;
+
+    public static string ToAlgebraic(this Square square)
+    {
+        if (square < 0 || square >= Square.SQ_COUNT)
+            return "none";
+
+        char file = (char)('a' + square.GetFile());
+        char rank = (char)('1' + square.GetRank());
+        return $"{file}{rank}";
+    }
+
+    public static Square Parse(string notation)
+    {
+        if (string.IsNullOrWhiteSpace(notation) || notation.Length != 2)
+            return Square.SQ_NONE;
+
+        char fileChar = char.ToLowerInvariant(notation[0]);
+        char rankChar = notation[1];
+
+        if (fileChar is < 'a' or > 'h' || rankChar is < '1' or > '8')
+            return Square.SQ_NONE;
+
+        int file = fileChar - 'a';
+        int rank = rankChar - '1';
+        return (Square)(rank * 8 + file);
+    }
+}
