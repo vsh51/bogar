@@ -5,8 +5,216 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Bogar.UI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Bogar" Height="720" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        MinWidth="720" MinHeight="480"
+        KeyDown="Window_KeyDown"
+        Background="{DynamicResource WindowBackgroundBrush}">
 
+    <Window.Resources>
+        <Style TargetType="Menu" x:Key="TopMenuStyle">
+            <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="HeaderTitle">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Style="{StaticResource TopMenuStyle}" Margin="8,4">
+            <MenuItem Header="Game" FontSize="14">
+                <MenuItem Header="Start Local" Click="StartLocal_Click"/>
+                <MenuItem Header="Exit Local" Click="ExitLocal_Click"/>
+            </MenuItem>
+            <MenuItem Header="Statistics" FontSize="14"/>
+            <MenuItem Header="Settings" FontSize="14"/>
+            <MenuItem Header="Connect" FontSize="14"/>
+            <MenuItem Header="Server" FontSize="14"/>
+        </Menu>
+
+        <Grid Grid.Row="1" Grid.Column="4" HorizontalAlignment="Center" >
+            <TextBlock Text="00:00:00" FontSize="20" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,-100,0" Style="{StaticResource HeaderTitle}"/>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Grid.Column="2" HorizontalAlignment="Center" Margin="0,10,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="PLAYER 1" FontSize="30" FontWeight="Bold" Margin="0,0,50,0" Style="{StaticResource HeaderTitle}"/>
+                    <TextBlock Text="bot1.exe" FontSize="15" HorizontalAlignment="Center"  Margin="0,0,50,0" Foreground="Black"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock x:Name="TurnArrow" Text="" FontSize="30" FontWeight="ExtraBold" Margin="0,-5,0,-5" HorizontalAlignment="Center" Style="{StaticResource HeaderTitle}"/>
+                    <TextBlock x:Name="TurnInfoText" Text="2" FontSize="26" FontWeight="Bold" Margin="0,-5,0,-5" HorizontalAlignment="Center" Style="{StaticResource HeaderTitle}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <TextBlock Text="PLAYER 2" FontSize="30" FontWeight="Bold" Margin="50,0,0,0" Style="{StaticResource HeaderTitle}"/>
+                    <TextBlock Text="bot2.exe" FontSize="15" HorizontalAlignment="Center"  Margin="50,0,0,0" Foreground="Black"/>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+
+        <Grid Grid.Row="2" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="26"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel x:Name="RankLabelsPanel" Grid.Column="0" VerticalAlignment="Center" Margin="0"/>
+
+            <DockPanel Grid.Column="1" LastChildFill="False">
+                <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="640" MaxHeight="640">
+                    <Border Padding="6" Background="Transparent">
+                        <UniformGrid x:Name="ChessUniformGrid" Rows="8" Columns="8" Width="560" Height="560"/>
+                    </Border>
+                </Viewbox>
+
+                <StackPanel x:Name="FilesPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0" DockPanel.Dock="Bottom"/>
+            </DockPanel>
+        </Grid>
+
+        <Grid Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0">
+            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,-40,0">
+                <ItemsControl x:Name="LeftMovesList" Margin="0,0,0,6">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontSize="12" HorizontalAlignment="Right" Foreground="{DynamicResource TextBrush}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <Grid Width="60" Height="360" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="200,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="60"/>
+                </Grid.RowDefinitions>
+
+                <Rectangle Grid.Row="0" Fill="{DynamicResource LightSquareBrush}"/>
+                <Rectangle Grid.Row="1" Fill="{DynamicResource DarkSquareBrush}"/>
+                <Rectangle Grid.Row="2" Fill="{DynamicResource LightSquareBrush}"/>
+                <Rectangle Grid.Row="3" Fill="{DynamicResource DarkSquareBrush}"/>
+                <Rectangle Grid.Row="4" Fill="{DynamicResource LightSquareBrush}"/>
+                <Rectangle Grid.Row="5" Fill="{DynamicResource DarkSquareBrush}"/>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource bP}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="LeftPawnCount" Text="x8" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource bK}" Width="40" Height="40"  Margin="0,0,6,0"/>
+                    <TextBlock x:Name="LeftKnightCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource bB}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="LeftBishopCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource bR}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="LeftRookCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource bQ}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="LeftQueenCount" Text="x1" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource bK}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="LeftKingCount" Text="x1" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="2" Grid.Column="4" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0">
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-40,0,0,0">
+                <ItemsControl x:Name="RightMovesList" Margin="0,0,0,6">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontSize="12" HorizontalAlignment="Left" Foreground="{DynamicResource TextBrush}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <Grid Width="60" Height="360" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,200,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="60"/>
+                </Grid.RowDefinitions>
+
+                <Rectangle Grid.Row="0" Fill="{DynamicResource DarkSquareBrush}"/>
+                <Rectangle Grid.Row="1" Fill="{DynamicResource LightSquareBrush}"/>
+                <Rectangle Grid.Row="2" Fill="{DynamicResource DarkSquareBrush}"/>
+                <Rectangle Grid.Row="3" Fill="{DynamicResource LightSquareBrush}"/>
+                <Rectangle Grid.Row="4" Fill="{DynamicResource DarkSquareBrush}"/>
+                <Rectangle Grid.Row="5" Fill="{DynamicResource LightSquareBrush}"/>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource wP}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="RightPawnCount" Text="x8" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource wK}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="RightKnightCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource wB}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="RightBishopCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource wR}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="RightRookCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource wQ}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="RightQueenCount" Text="x1" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="{StaticResource wK}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="RightKingCount" Text="x1" FontSize="12" VerticalAlignment="Bottom"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
+            <TextBox x:Name="CommandTextBox" Width="300" Height="26" VerticalContentAlignment="Center"
+                     KeyDown="CommandTextBox_KeyDown"/>
+            <Button Content="Send" Width="80" Margin="8,0,0,0" Click="SendCommand_Click"/>
+
+            <Button x:Name="StartMatchButton" Content="Start Match" Width="100" Margin="8,0,0,0" Click="StartMatchButton_Click" Visibility="Collapsed"/>
+            <Button x:Name="StopMatchButton" Content="Stop Match" Width="100" Margin="8,0,0,0" Click="StopMatchButton_Click" Visibility="Collapsed"/>
+        </StackPanel>
     </Grid>
 </Window>

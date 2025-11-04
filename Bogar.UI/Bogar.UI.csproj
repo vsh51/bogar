@@ -8,4 +8,58 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Resources\Pieces\bB.png" />
+    <None Remove="Resources\Pieces\bK.png" />
+    <None Remove="Resources\Pieces\bN.png" />
+    <None Remove="Resources\Pieces\bP.png" />
+    <None Remove="Resources\Pieces\bQ.png" />
+    <None Remove="Resources\Pieces\bR.png" />
+    <None Remove="Resources\Pieces\wB.png" />
+    <None Remove="Resources\Pieces\wK.png" />
+    <None Remove="Resources\Pieces\wN.png" />
+    <None Remove="Resources\Pieces\wP.png" />
+    <None Remove="Resources\Pieces\wQ.png" />
+    <None Remove="Resources\Pieces\wR.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Pieces\bB.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Pieces\bK.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Pieces\bN.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Pieces\bP.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Pieces\bQ.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Pieces\bR.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Pieces\wB.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Pieces\wK.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Pieces\wN.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Pieces\wP.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Pieces\wQ.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Pieces\wR.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
 </Project>
