@@ -58,6 +58,22 @@ public class Game
         Moves.Add(newMove);
     }
 
+    // Add these new methods
+    public Position GetCurrentPosition()
+    {
+        return new Position(_position);
+    }
+
+    public bool IsGameOver()
+    {
+        return Moves.Count >= 32;
+    }
+
+    public Color GetCurrentTurn()
+    {
+        return (Moves.Count % 2 == 0) ? Color.White : Color.Black;
+    }
+
     private Move ParseMoveString(string moveString, Color sideToMove)
     {
         if (string.IsNullOrEmpty(moveString) || moveString.Length < 2)

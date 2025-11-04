@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Bogar.BLL\Bogar.BLL.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Resources\Pieces\bB.png" />
     <None Remove="Resources\Pieces\bK.png" />
     <None Remove="Resources\Pieces\bN.png" />

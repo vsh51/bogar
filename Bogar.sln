@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bogar.BLL", "Bogar.BLL\Boga
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bogar.Tests", "Bogar.Tests\Bogar.Tests.csproj", "{499F6EED-FF48-43E0-9C52-1F8A25B56AF0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bogar.UI", "Bogar.UI\Bogar.UI.csproj", "{13B30870-566D-5928-D96B-C1B0BF786B07}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{499F6EED-FF48-43E0-9C52-1F8A25B56AF0}.Release|x64.Build.0 = Release|Any CPU
 		{499F6EED-FF48-43E0-9C52-1F8A25B56AF0}.Release|x86.ActiveCfg = Release|Any CPU
 		{499F6EED-FF48-43E0-9C52-1F8A25B56AF0}.Release|x86.Build.0 = Release|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Debug|x64.Build.0 = Debug|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Debug|x86.Build.0 = Debug|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Release|x64.ActiveCfg = Release|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Release|x64.Build.0 = Release|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Release|x86.ActiveCfg = Release|Any CPU
+		{13B30870-566D-5928-D96B-C1B0BF786B07}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

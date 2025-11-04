@@ -119,4 +119,6 @@ public class Position
             _ => 0
         };
     }
+
+    public Board GetBoard() => _board;
 }
