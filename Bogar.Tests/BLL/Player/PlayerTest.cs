@@ -9,7 +9,7 @@ namespace Bogar.Tests.BLL.Player
 {
     public class PlayerTests
     {
-        private const string RealBotPath = @".\bots\default\random_bot.exe";
+        private const string RealBotPath = @".\random_bot.exe";
 
         [Fact]
         public void GetMove_SendsMultipleMoves_ReturnsValidMove()
