@@ -1,5 +1,0 @@
-<RunSettings>
-  <RunConfiguration>
-    <WorkingDirectory>$(MSBuildProjectDirectory)</WorkingDirectory>
-  </RunConfiguration>
-</RunSettings>

@@ -24,4 +24,10 @@
     <ProjectReference Include="..\Bogar.DAL\Bogar.DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="..\bots\default\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
