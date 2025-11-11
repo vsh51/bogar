@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
-using Microsoft.Win32;
 using Bogar.UI.Chess;
 using Bogar.BLL.Core;
 using BllColor = Bogar.BLL.Core.Color;
@@ -14,14 +10,12 @@ using BllPieceType = Bogar.BLL.Core.PieceType;
 using BllPiece = Bogar.BLL.Core.Piece;
 using BllSquare = Bogar.BLL.Core.Square;
 using BllMove = Bogar.BLL.Core.Move;
-using BllPosition = Bogar.BLL.Core.Position;
 
 namespace Bogar.UI
 {
     public partial class MainWindow : Window
     {
         private Chess.Board chessBoard = new Chess.Board();
-        private PieceColor currentTurn = PieceColor.Black;
         private GameManager gameManager = new GameManager();
 
         private ObservableCollection<string> leftMoves = new ObservableCollection<string>();
@@ -31,9 +25,12 @@ namespace Bogar.UI
         private string whiteBotPath = "";
         private string blackBotPath = "";
 
-        public MainWindow()
+        public MainWindow(string whiteBotPath, string blackBotPath)
         {
             InitializeComponent();
+
+            this.whiteBotPath = whiteBotPath;
+            this.blackBotPath = blackBotPath;
 
             LeftMovesList.ItemsSource = leftMoves;
             RightMovesList.ItemsSource = rightMoves;
@@ -41,8 +38,18 @@ namespace Bogar.UI
             SetupGameManager();
             GenerateBoard();
             RenderBoard();
-            UpdateTurnUI();
             UpdatePieceCounters();
+
+            WhiteBotNameTextBlock.Text = string.IsNullOrEmpty(whiteBotPath) 
+                ? "No Bot" 
+                : System.IO.Path.GetFileNameWithoutExtension(whiteBotPath);
+            
+            BlackBotNameTextBlock.Text = string.IsNullOrEmpty(blackBotPath) 
+                ? "No Bot" 
+                : System.IO.Path.GetFileNameWithoutExtension(blackBotPath);
+
+            StartMatchButton.Visibility = Visibility.Visible;
+            StopMatchButton.Visibility = Visibility.Visible;
         }
 
         private void SetupGameManager()
@@ -69,12 +76,9 @@ namespace Bogar.UI
                 if (targetList.Count >= MaxSideMoves)
                     targetList.RemoveAt(0);
                 targetList.Add(moveString);
-                
 
                 SyncBoardWithGameState();
-                UpdateTurnUI();
                 UpdatePieceCounters();
-                
                 UpdateScoreDisplay();
             });
         }
@@ -99,7 +103,8 @@ namespace Bogar.UI
         {
             Dispatcher.Invoke(() =>
             {
-                // pass
+                StartMatchButton.IsEnabled = true;
+                StopMatchButton.IsEnabled = false;
             });
         }
 
@@ -117,9 +122,6 @@ namespace Bogar.UI
                 {
                     var uiPieceType = ConvertToUIPieceType(PieceExtensions.TypeOfPiece(piece));
                     var uiPieceColor = PieceExtensions.ColorOfPiece(piece) == BllColor.White ? PieceColor.White : PieceColor.Black;
-                    
-                    int row = SquareExtensions.GetRank(sq);
-                    int col = SquareExtensions.GetFile(sq);
                     
                     string algebraic = $"{GetPieceChar(piece)}{SquareExtensions.ToAlgebraic(sq).ToUpper()}";
                     chessBoard.PlaceBySan(uiPieceColor, algebraic, out _);
@@ -168,7 +170,12 @@ namespace Bogar.UI
             leftMoves.Clear();
             rightMoves.Clear();
             
+            chessBoard = new Chess.Board();
+            RenderBoard();
+            UpdatePieceCounters();
+            
             TurnInfoText.Text = "0";
+            GameTimerText.Text = "00:00:00";
             
             gameManager.StartGame(whiteBotPath, blackBotPath);
             
@@ -184,13 +191,13 @@ namespace Bogar.UI
             StopMatchButton.IsEnabled = false;
         }
 
-        private void Window_KeyDown(object sender, KeyEventArgs e)
+        private void ExitToMenu_Click(object sender, RoutedEventArgs e)
         {
-            if (e.Key == Key.Enter && CommandTextBox.IsFocused)
-            {
-                SendCommand_Click(this, new RoutedEventArgs());
-                e.Handled = true;
-            }
+            gameManager.StopGame();
+            
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
         }
 
         private void GenerateBoard()
@@ -245,38 +252,6 @@ namespace Bogar.UI
             }
         }
 
-        private void SendCommand_Click(object sender, RoutedEventArgs e)
-        {
-            var cmd = CommandTextBox.Text?.Trim();
-            if (string.IsNullOrEmpty(cmd)) return;
-
-            if (chessBoard.PlaceBySan(currentTurn, cmd, out string error))
-            {
-                AddMoveToSide(currentTurn, cmd);
-                RenderBoard();
-                UpdatePieceCounters();
-                UpdateTurnUI();
-            }
-            else
-            {
-                MessageBox.Show(error, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-
-            CommandTextBox.Clear();
-        }
-
-        private void CommandTextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-                SendCommand_Click(this, new RoutedEventArgs());
-        }
-
-        private void UpdateTurnUI()
-        {
-            currentTurn = currentTurn == PieceColor.White ? PieceColor.Black : PieceColor.White;
-            TurnArrow.Text = currentTurn == PieceColor.White ? "←" : "→";
-        }
-
         private void UpdatePieceCounters()
         {
             LeftPawnCount.Text = $"x{chessBoard.RemainingOf(PieceColor.Black, Chess.PieceType.Pawn)}";
@@ -294,86 +269,10 @@ namespace Bogar.UI
             RightKingCount.Text = $"x{chessBoard.RemainingOf(PieceColor.White, Chess.PieceType.King)}";
         }
 
-        private void AddMoveToSide(PieceColor color, string move)
-        {
-            var targetList = color == PieceColor.White ? rightMoves : leftMoves;
-            if (targetList.Count >= MaxSideMoves)
-                targetList.RemoveAt(0);
-
-            targetList.Add(move);
-        }
-
         private void UpdateScoreDisplay()
         {
             int score = gameManager.GetCurrentScore();
             TurnInfoText.Text = score.ToString();
-        }
-
-        private void StartLocal_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new BotSelectionDialog
-            {
-                Owner = this
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                whiteBotPath = dialog.WhiteBotPath;
-                blackBotPath = dialog.BlackBotPath;
-
-                WhiteBotNameTextBlock.Text = string.IsNullOrEmpty(whiteBotPath) 
-                    ? "No Bot" 
-                    : System.IO.Path.GetFileNameWithoutExtension(whiteBotPath);
-                
-                BlackBotNameTextBlock.Text = string.IsNullOrEmpty(blackBotPath) 
-                    ? "No Bot" 
-                    : System.IO.Path.GetFileNameWithoutExtension(blackBotPath);
-
-                StartMatchButton.Visibility = Visibility.Visible;
-                StopMatchButton.Visibility = Visibility.Visible;
-
-                CommandTextBox.Visibility = Visibility.Collapsed;
-                CommandTextBox.IsEnabled = false;
-
-                SendMoveButton.Visibility = Visibility.Collapsed;
-                SendMoveButton.IsEnabled = false;
-            }
-        }
- 
-        private void ExitLocal_Click(object sender, RoutedEventArgs e)
-        {
-            gameManager.StopGame();
-
-            leftMoves.Clear();
-            rightMoves.Clear();
-            
-            chessBoard = new Chess.Board();
-            RenderBoard();
-            
-            currentTurn = PieceColor.Black;
-            UpdateTurnUI();
-            UpdatePieceCounters();
-            
-            TurnInfoText.Text = "0";
-            GameTimerText.Text = "00:00:00";
-            
-            WhiteBotNameTextBlock.Text = "";
-            BlackBotNameTextBlock.Text = "";
-            
-            StartMatchButton.Visibility = Visibility.Collapsed;
-            StopMatchButton.Visibility = Visibility.Collapsed;
-            
-            StartMatchButton.IsEnabled = true;
-            StopMatchButton.IsEnabled = false;
-            
-            CommandTextBox.Visibility = Visibility.Visible;
-            CommandTextBox.IsEnabled = true;
-            
-            SendMoveButton.Visibility = Visibility.Visible;
-            SendMoveButton.IsEnabled = true;
-            
-            whiteBotPath = "";
-            blackBotPath = "";
         }
     }
 

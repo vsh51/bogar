@@ -1,41 +1,89 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using Microsoft.Win32;
 
 namespace Bogar.UI
 {
     public partial class StartWindow : Window
     {
+        private string whiteBotPath = "";
+        private string blackBotPath = "";
+
         public StartWindow()
         {
             InitializeComponent();
         }
 
-        private void LocalGameButton_Click(object sender, RoutedEventArgs e)
+        private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            var mainWindow = new MainWindow();
+            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void BrowseWhiteBotButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Executable files (*.exe)|*.exe|All files (*.*)|*.*",
+                Title = "Select White Bot"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                whiteBotPath = dialog.FileName;
+                WhiteBotPathTextBox.Text = System.IO.Path.GetFileName(whiteBotPath);
+                UpdateStartLocalGameButtonState();
+            }
+        }
+
+        private void BrowseBlackBotButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Executable files (*.exe)|*.exe|All files (*.*)|*.*",
+                Title = "Select Black Bot"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                blackBotPath = dialog.FileName;
+                BlackBotPathTextBox.Text = System.IO.Path.GetFileName(blackBotPath);
+                UpdateStartLocalGameButtonState();
+            }
+        }
+
+        private void UpdateStartLocalGameButtonState()
+        {
+            StartLocalGameButton.IsEnabled = !string.IsNullOrEmpty(blackBotPath);
+        }
+
+        private void StartLocalGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            var mainWindow = new MainWindow(whiteBotPath, blackBotPath);
             mainWindow.Show();
             this.Close();
         }
 
-        private void CreateLobbyButton_Click(object sender, RoutedEventArgs e)
+        private void HostTournamentButton_Click(object sender, RoutedEventArgs e)
         {
-           
+            // pass
         }
 
-        private void ConnectServerButton_Click(object sender, RoutedEventArgs e)
+        private void JoinLobbyButton_Click(object sender, RoutedEventArgs e)
         {
-            
+            // pass
         }
     }
 }
