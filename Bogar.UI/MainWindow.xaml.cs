@@ -21,16 +21,15 @@ namespace Bogar.UI
     public partial class MainWindow : Window
     {
         private Chess.Board chessBoard = new Chess.Board();
-        private PieceColor currentTurn = PieceColor.White;
+        private PieceColor currentTurn = PieceColor.Black;
         private GameManager gameManager = new GameManager();
-        private DispatcherTimer gameTimer;
 
         private ObservableCollection<string> leftMoves = new ObservableCollection<string>();
         private ObservableCollection<string> rightMoves = new ObservableCollection<string>();
         private const int MaxSideMoves = 16;
 
-        private string whiteBotPath = @"E:\Projects\3c1s\Web\bogar\bot1.exe";
-        private string blackBotPath = @"E:\Projects\3c1s\Web\bogar\bot1.exe";
+        private string whiteBotPath = "";
+        private string blackBotPath = "";
 
         public MainWindow()
         {
@@ -40,7 +39,6 @@ namespace Bogar.UI
             RightMovesList.ItemsSource = rightMoves;
 
             SetupGameManager();
-            SetupGameTimer();
             GenerateBoard();
             RenderBoard();
             UpdateTurnUI();
@@ -53,15 +51,12 @@ namespace Bogar.UI
             gameManager.ScoreUpdated += OnScoreUpdated;
             gameManager.GameStatusChanged += OnGameStatusChanged;
             gameManager.GameEnded += OnGameEnded;
+            gameManager.TimerTick += OnTimerTick;
         }
 
-        private void SetupGameTimer()
+        private void OnTimerTick(TimeSpan elapsed)
         {
-            gameTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(500)
-            };
-            gameTimer.Tick += async (s, e) => await gameManager.ExecuteNextMoveAsync();
+            GameTimerText.Text = elapsed.ToString(@"mm\:ss\:ff");
         }
 
         private void OnMoveExecuted(BllMove move, BllColor playerColor)
@@ -70,10 +65,11 @@ namespace Bogar.UI
             {
                 string moveString = $"{GetPieceChar(move.Piece)}{SquareExtensions.ToAlgebraic(move.Square).ToUpper()}";
                 
-                var targetList = playerColor == BllColor.White ? leftMoves : rightMoves;
+                var targetList = playerColor == BllColor.White ? rightMoves : leftMoves;
                 if (targetList.Count >= MaxSideMoves)
                     targetList.RemoveAt(0);
                 targetList.Add(moveString);
+                
 
                 SyncBoardWithGameState();
                 UpdateTurnUI();
@@ -103,8 +99,7 @@ namespace Bogar.UI
         {
             Dispatcher.Invoke(() =>
             {
-                gameTimer.Stop();
-                MessageBox.Show("Game completed!", "Game Over", MessageBoxButton.OK, MessageBoxImage.Information);
+                // pass
             });
         }
 
@@ -176,7 +171,6 @@ namespace Bogar.UI
             TurnInfoText.Text = "0";
             
             gameManager.StartGame(whiteBotPath, blackBotPath);
-            gameTimer.Start();
             
             StartMatchButton.IsEnabled = false;
             StopMatchButton.IsEnabled = true;
@@ -184,7 +178,6 @@ namespace Bogar.UI
 
         private void StopMatchButton_Click(object sender, RoutedEventArgs e)
         {
-            gameTimer.Stop();
             gameManager.StopGame();
             
             StartMatchButton.IsEnabled = true;
@@ -303,7 +296,7 @@ namespace Bogar.UI
 
         private void AddMoveToSide(PieceColor color, string move)
         {
-            var targetList = color == PieceColor.White ? leftMoves : rightMoves;
+            var targetList = color == PieceColor.White ? rightMoves : leftMoves;
             if (targetList.Count >= MaxSideMoves)
                 targetList.RemoveAt(0);
 
@@ -318,31 +311,68 @@ namespace Bogar.UI
 
         private void StartLocal_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openBlack = new OpenFileDialog
+            var dialog = new BotSelectionDialog
             {
-                Filter = "Executable files (*.exe)|*.exe|All files (*.*)|*.*",
-                Title = "Select Black Bot",
-                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+                Owner = this
             };
-            if (openBlack.ShowDialog() == true)
-                blackBotPath = openBlack.FileName;
 
-            StartMatchButton.Visibility = Visibility.Visible;
-            StopMatchButton.Visibility = Visibility.Visible;
+            if (dialog.ShowDialog() == true)
+            {
+                whiteBotPath = dialog.WhiteBotPath;
+                blackBotPath = dialog.BlackBotPath;
+
+                WhiteBotNameTextBlock.Text = string.IsNullOrEmpty(whiteBotPath) 
+                    ? "No Bot" 
+                    : System.IO.Path.GetFileNameWithoutExtension(whiteBotPath);
+                
+                BlackBotNameTextBlock.Text = string.IsNullOrEmpty(blackBotPath) 
+                    ? "No Bot" 
+                    : System.IO.Path.GetFileNameWithoutExtension(blackBotPath);
+
+                StartMatchButton.Visibility = Visibility.Visible;
+                StopMatchButton.Visibility = Visibility.Visible;
+
+                CommandTextBox.Visibility = Visibility.Collapsed;
+                CommandTextBox.IsEnabled = false;
+
+                SendMoveButton.Visibility = Visibility.Collapsed;
+                SendMoveButton.IsEnabled = false;
+            }
         }
  
         private void ExitLocal_Click(object sender, RoutedEventArgs e)
         {
-            gameTimer.Stop();
             gameManager.StopGame();
-            
+
             leftMoves.Clear();
             rightMoves.Clear();
             
+            chessBoard = new Chess.Board();
+            RenderBoard();
+            
+            currentTurn = PieceColor.Black;
+            UpdateTurnUI();
+            UpdatePieceCounters();
+            
             TurnInfoText.Text = "0";
+            GameTimerText.Text = "00:00:00";
+            
+            WhiteBotNameTextBlock.Text = "";
+            BlackBotNameTextBlock.Text = "";
             
             StartMatchButton.Visibility = Visibility.Collapsed;
             StopMatchButton.Visibility = Visibility.Collapsed;
+            
+            StartMatchButton.IsEnabled = true;
+            StopMatchButton.IsEnabled = false;
+            
+            CommandTextBox.Visibility = Visibility.Visible;
+            CommandTextBox.IsEnabled = true;
+            
+            SendMoveButton.Visibility = Visibility.Visible;
+            SendMoveButton.IsEnabled = true;
+            
+            whiteBotPath = "";
             blackBotPath = "";
         }
     }
