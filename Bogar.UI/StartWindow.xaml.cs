@@ -78,12 +78,17 @@ namespace Bogar.UI
 
         private void HostTournamentButton_Click(object sender, RoutedEventArgs e)
         {
-            // pass
+            var createLobbyWindow = new CreateLobbyWindow();
+            createLobbyWindow.Show();
+            this.Close();
         }
+
 
         private void JoinLobbyButton_Click(object sender, RoutedEventArgs e)
         {
-            // pass
+            var joinLobbyWindow = new JoinLobbyWindow();
+            joinLobbyWindow.Show();
+            this.Close();
         }
     }
 }

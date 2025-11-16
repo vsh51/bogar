@@ -1,13 +1,17 @@
 ﻿<Application x:Class="Bogar.UI.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                          StartupUri="StartWindow.xaml">
+             StartupUri="StartWindow.xaml">
     <Application.Resources>
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="White"/>
         <SolidColorBrush x:Key="LightSquareBrush" Color="#FFF8F5"/>
         <SolidColorBrush x:Key="DarkSquareBrush" Color="#808583"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#2E86C1"/>
         <SolidColorBrush x:Key="TextBrush" Color="#222222"/>
+        <SolidColorBrush x:Key="TextLightBrush" Color="#95A5A6"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#BDC3C7"/>
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#27AE60"/>
+        <SolidColorBrush x:Key="BackgroundLightBrush" Color="#FAFAFA"/>
 
         <BitmapImage x:Key="wP" UriSource="pack://application:,,,/Resources/Pieces/wP.png"/>
         <BitmapImage x:Key="wN" UriSource="pack://application:,,,/Resources/Pieces/wN.png"/>
@@ -23,25 +27,24 @@
         <BitmapImage x:Key="bQ" UriSource="pack://application:,,,/Resources/Pieces/bQ.png"/>
         <BitmapImage x:Key="bK" UriSource="pack://application:,,,/Resources/Pieces/bK.png"/>
 
-
         <Style x:Key="PrimaryButton" TargetType="Button">
             <Setter Property="Width" Value="250"/>
             <Setter Property="Height" Value="42"/>
             <Setter Property="Margin" Value="0,8"/>
-            <Setter Property="Background" Value="{DynamicResource DarkSquareBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource WindowBackgroundBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource DarkSquareBrush}"/>
+            <Setter Property="Background" Value="{StaticResource DarkSquareBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource WindowBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource DarkSquareBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}"
-                           BorderBrush="{TemplateBinding BorderBrush}"
-                           BorderThickness="{TemplateBinding BorderThickness}"
-                           CornerRadius="8">
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
                             <ContentPresenter HorizontalAlignment="Center"
-                                         VerticalAlignment="Center"/>
+                                              VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -57,9 +60,9 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
                         <Border Background="White"
-                        BorderBrush="{DynamicResource DarkSquareBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6">
+                                BorderBrush="{StaticResource DarkSquareBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6">
                             <ScrollViewer x:Name="PART_ContentHost"/>
                         </Border>
                     </ControlTemplate>
@@ -67,6 +70,64 @@
             </Setter>
         </Style>
 
+        <Style x:Key="FileTextBox" TargetType="{x:Type TextBox}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource TextLightBrush}"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Padding" Value="8,4,8,4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="MinWidth" Value="140"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0">
+                            <ScrollViewer x:Name="PART_ContentHost" Padding="{TemplateBinding Padding}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="BrowseButtonCompact" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Padding" Value="12,0,12,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="MinWidth" Value="70"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="5"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
+        
     </Application.Resources>
 </Application>
