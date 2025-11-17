@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Bogar.BLL.Game;
@@ -11,9 +12,12 @@ namespace Bogar.UI
     {
         private Game? _currentGame;
         private bool _isGameRunning;
-        private DispatcherTimer _gameTimer;
-        private DispatcherTimer _displayTimer;
+        private bool _isMoveInProgress;
         private DateTime _gameStartTime;
+
+        private readonly DispatcherTimer _uiTimer;
+
+        private const int MoveTimeLimitSeconds = 20;
 
         public event Action<Move, Color>? MoveExecuted;
         public event Action<int>? ScoreUpdated;
@@ -25,20 +29,18 @@ namespace Bogar.UI
 
         public GameManager()
         {
-            _gameTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(500)
-            };
-            _gameTimer.Tick += async (s, e) => await ExecuteNextMoveAsync();
-
-            _displayTimer = new DispatcherTimer
+            _uiTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(13)
             };
-            _displayTimer.Tick += (s, e) =>
+
+            _uiTimer.Tick += (s, e) =>
             {
-                var elapsed = DateTime.Now - _gameStartTime;
-                TimerTick?.Invoke(elapsed);
+                if (_isGameRunning)
+                {
+                    var elapsed = DateTime.Now - _gameStartTime;
+                    TimerTick?.Invoke(elapsed);
+                }
             };
         }
 
@@ -48,15 +50,18 @@ namespace Bogar.UI
             {
                 var whitePlayer = new Player(whiteBotPath);
                 var blackPlayer = new Player(blackBotPath);
-                
+
                 _currentGame = new Game(whitePlayer, blackPlayer);
+
                 _isGameRunning = true;
+                _isMoveInProgress = false;
                 _gameStartTime = DateTime.Now;
-                
-                _gameTimer.Start();
-                _displayTimer.Start();
-                
+
+                _uiTimer.Start();
+
                 GameStatusChanged?.Invoke("Game started");
+
+                _ = RunGameLoopAsync();
             }
             catch (Exception ex)
             {
@@ -67,65 +72,93 @@ namespace Bogar.UI
         public void StopGame()
         {
             _isGameRunning = false;
-            _gameTimer.Stop();
-            _displayTimer.Stop();
+            _uiTimer.Stop();
             _currentGame = null;
+
             GameStatusChanged?.Invoke("Game stopped");
+        }
+
+        private async Task RunGameLoopAsync()
+        {
+            while (_isGameRunning && _currentGame != null && !_currentGame.IsGameOver())
+            {
+                if (!_isMoveInProgress)
+                {
+                    _isMoveInProgress = true;
+                    await ExecuteNextMoveAsync();
+                    _isMoveInProgress = false;
+                }
+
+                await Task.Delay(10);
+            }
         }
 
         public async Task ExecuteNextMoveAsync()
         {
             var game = _currentGame;
-            if (game == null || !_isGameRunning || game.IsGameOver())
+            if (game == null || !IsGameActive)
                 return;
+
+            using var cts = new CancellationTokenSource(
+                TimeSpan.FromSeconds(MoveTimeLimitSeconds)
+            );
 
             try
             {
                 await Task.Run(() =>
                 {
-                    var currentTurn = game.GetCurrentTurn();
                     game.DoNextMove();
-                    
-                    var lastMove = game.Moves[^1];
-                    var score = game.GetScore();
-                    
+                }, cts.Token);
+
+                var lastMove = game.Moves[^1];
+                var score = game.GetScore();
+                var currentTurn = game.GetCurrentTurn();
+
+                DispatchUI(() =>
+                {
                     MoveExecuted?.Invoke(lastMove, currentTurn);
                     ScoreUpdated?.Invoke(score);
-                    
-                    if (game.IsGameOver())
-                    {
-                        _isGameRunning = false;
-                        _gameTimer.Stop();
-                        _displayTimer.Stop();
-                        GameEnded?.Invoke();
-                        GameStatusChanged?.Invoke("Game completed");
-                    }
                 });
+
+                if (game.IsGameOver())
+                {
+                    EndGame("Game completed");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                EndGame("Move timeout — game ended");
             }
             catch (Exception ex)
             {
-                GameStatusChanged?.Invoke($"Move error: {ex.Message}");
-                _isGameRunning = false;
-                _gameTimer.Stop();
-                _displayTimer.Stop();
+                EndGame($"Move error: {ex.Message}");
             }
         }
 
-        public Position? GetCurrentPosition()
+        private void EndGame(string message)
         {
-            return _currentGame?.GetCurrentPosition();
+            if (!_isGameRunning) return;
+
+            _isGameRunning = false;
+            _uiTimer.Stop();
+
+            DispatchUI(() =>
+            {
+                GameEnded?.Invoke();
+                GameStatusChanged?.Invoke(message);
+            });
         }
 
-        public int GetCurrentScore()
+        private void DispatchUI(Action action)
         {
-            return _currentGame?.GetScore() ?? 0;
+            App.Current.Dispatcher.Invoke(action);
         }
 
-        public TimeSpan GetElapsedTime()
-        {
-            if (!_isGameRunning)
-                return TimeSpan.Zero;
-            return DateTime.Now - _gameStartTime;
-        }
+        public Position? GetCurrentPosition() => _currentGame?.GetCurrentPosition();
+
+        public int GetCurrentScore() => _currentGame?.GetScore() ?? 0;
+
+        public TimeSpan GetElapsedTime() =>
+            _isGameRunning ? DateTime.Now - _gameStartTime : TimeSpan.Zero;
     }
 }
