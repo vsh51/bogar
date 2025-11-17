@@ -12,8 +12,8 @@ namespace Bogar.BLL.Game
 {
     public class GameTest
     {
-        private const string WhiteBotPath = "/Users/work/Desktop/bots/a.out";
-        private const string BlackBotPath = "/Users/work/Desktop/bots/a.out";
+        private const string WhiteBotPath = @"..\..\..\test_bots\random_bot.exe";
+        private const string BlackBotPath = @"..\..\..\test_bots\random_bot.exe";
 
         private readonly ITestOutputHelper _output;
 

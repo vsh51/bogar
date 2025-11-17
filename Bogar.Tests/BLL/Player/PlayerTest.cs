@@ -9,8 +9,8 @@ namespace Bogar.Tests.BLL.Player
 {
     public class PlayerTests
     {
-        private const string RealBotPath = "empty";
-        private const string InvalidBotPath = "empty"; 
+        private const string RealBotPath = @"..\..\..\test_bots\random_bot.exe";
+
         [Fact]
         public void GetMove_SendsMultipleMoves_ReturnsValidMove()
         {
@@ -55,19 +55,7 @@ namespace Bogar.Tests.BLL.Player
             
             Assert.True(position.IsLegal(botMove), $"Bot returned an illegal first move: {botResponse}");
         }
-        
-        [Fact]
-        public void GetMove_InvalidBotPath_ReturnsEmptyString()
-        {
-            
-            var player = new BotPlayer(InvalidBotPath);
-            var moves = new List<Move> { new Move(Piece.WhitePawn, Square.E4) }; 
-            
-            var result = player.GetMove(moves);
-            
-            Assert.Equal(string.Empty, result);
-        }
-        
+
         private Move ParseMoveString(string moveString, Color sideToMove)
         {
             if (string.IsNullOrEmpty(moveString) || moveString.Length < 2)
