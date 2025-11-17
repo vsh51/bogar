@@ -129,7 +129,7 @@
                     <TextBlock x:Name="LeftPawnCount" Text="x8" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Image Source="{StaticResource bK}" Width="40" Height="40"  Margin="0,0,6,0"/>
+                    <Image Source="{StaticResource bN}" Width="40" Height="40"  Margin="0,0,6,0"/>
                     <TextBlock x:Name="LeftKnightCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -184,7 +184,7 @@
                     <TextBlock x:Name="RightPawnCount" Text="x8" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Image Source="{StaticResource wK}" Width="40" Height="40" Margin="0,0,6,0"/>
+                    <Image Source="{StaticResource wN}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="RightKnightCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">

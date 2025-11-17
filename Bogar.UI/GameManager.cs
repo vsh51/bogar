@@ -11,34 +11,42 @@ namespace Bogar.UI
     {
         private Game? _currentGame;
         private bool _isGameRunning;
-        private DispatcherTimer _gameTimer;
-        private DispatcherTimer _displayTimer;
+        private bool _isMoveInProgress;
         private DateTime _gameStartTime;
+        private DateTime _moveStartTime;
+
+        private readonly DispatcherTimer _uiTimer;
+
+        private const int MoveTimeLimitSeconds = 20;
 
         public event Action<Move, Color>? MoveExecuted;
         public event Action<int>? ScoreUpdated;
         public event Action<string>? GameStatusChanged;
-        public event Action? GameEnded;
+        public event Action<Color?>? GameEnded;
         public event Action<TimeSpan>? TimerTick;
 
-        public bool IsGameActive => _currentGame != null && !_currentGame.IsGameOver();
+        public bool IsGameActive =>
+            _currentGame != null && !_currentGame.IsGameOver() && _isGameRunning;
 
         public GameManager()
         {
-            _gameTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(500)
-            };
-            _gameTimer.Tick += async (s, e) => await ExecuteNextMoveAsync();
-
-            _displayTimer = new DispatcherTimer
+            _uiTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(13)
             };
-            _displayTimer.Tick += (s, e) =>
+
+            _uiTimer.Tick += (s, e) =>
             {
-                var elapsed = DateTime.Now - _gameStartTime;
+                if (!_isGameRunning)
+                    return;
+
+                var elapsed = DateTime.Now - _moveStartTime;
                 TimerTick?.Invoke(elapsed);
+
+                if (_isMoveInProgress && elapsed.TotalSeconds > MoveTimeLimitSeconds)
+                {
+                    HandleMoveTimeout();
+                }
             };
         }
 
@@ -48,15 +56,19 @@ namespace Bogar.UI
             {
                 var whitePlayer = new Player(whiteBotPath);
                 var blackPlayer = new Player(blackBotPath);
-                
+
                 _currentGame = new Game(whitePlayer, blackPlayer);
+
                 _isGameRunning = true;
+                _isMoveInProgress = false;
                 _gameStartTime = DateTime.Now;
-                
-                _gameTimer.Start();
-                _displayTimer.Start();
-                
+                _moveStartTime = _gameStartTime;
+
+                _uiTimer.Start();
+
                 GameStatusChanged?.Invoke("Game started");
+
+                _ = RunGameLoopAsync();
             }
             catch (Exception ex)
             {
@@ -67,65 +79,138 @@ namespace Bogar.UI
         public void StopGame()
         {
             _isGameRunning = false;
-            _gameTimer.Stop();
-            _displayTimer.Stop();
+            _isMoveInProgress = false;
+            _uiTimer.Stop();
             _currentGame = null;
+
             GameStatusChanged?.Invoke("Game stopped");
+        }
+
+        private async Task RunGameLoopAsync()
+        {
+            while (_isGameRunning && _currentGame != null && !_currentGame.IsGameOver())
+            {
+                if (!_isMoveInProgress)
+                {
+                    _isMoveInProgress = true;
+                    await ExecuteNextMoveAsync();
+                    _isMoveInProgress = false;
+                }
+
+                await Task.Delay(10);
+            }
         }
 
         public async Task ExecuteNextMoveAsync()
         {
             var game = _currentGame;
-            if (game == null || !_isGameRunning || game.IsGameOver())
+            if (game == null || !IsGameActive)
                 return;
+
+            _moveStartTime = DateTime.Now;
+
+            var moveColor = game.GetCurrentTurn();
 
             try
             {
-                await Task.Run(() =>
+                await Task.Run(() => game.DoNextMove());
+
+                if (!_isGameRunning || game != _currentGame)
+                    return;
+
+                var lastMove = game.Moves[^1];
+                var score = game.GetScore();
+
+                DispatchUI(() =>
                 {
-                    var currentTurn = game.GetCurrentTurn();
-                    game.DoNextMove();
-                    
-                    var lastMove = game.Moves[^1];
-                    var score = game.GetScore();
-                    
-                    MoveExecuted?.Invoke(lastMove, currentTurn);
+                    MoveExecuted?.Invoke(lastMove, moveColor);
                     ScoreUpdated?.Invoke(score);
-                    
-                    if (game.IsGameOver())
-                    {
-                        _isGameRunning = false;
-                        _gameTimer.Stop();
-                        _displayTimer.Stop();
-                        GameEnded?.Invoke();
-                        GameStatusChanged?.Invoke("Game completed");
-                    }
                 });
+
+                if (game.IsGameOver())
+                {
+                    var winner = DetermineWinner(game);
+                    var statusMessage = winner switch
+                    {
+                        Color.White => "Game completed — White wins",
+                        Color.Black => "Game completed — Black wins",
+                        _ => "Game completed — Draw"
+                    };
+
+                    EndGame(statusMessage, winner);
+                }
             }
             catch (Exception ex)
             {
-                GameStatusChanged?.Invoke($"Move error: {ex.Message}");
-                _isGameRunning = false;
-                _gameTimer.Stop();
-                _displayTimer.Stop();
+                EndGame($"Move error: {ex.Message}");
             }
         }
 
-        public Position? GetCurrentPosition()
+        private void HandleMoveTimeout()
         {
-            return _currentGame?.GetCurrentPosition();
+            if (_currentGame == null || !_isGameRunning)
+                return;
+
+            var game = _currentGame;
+
+            var loser = game.GetCurrentTurn();
+
+            _isGameRunning = false;
+            _isMoveInProgress = false;
+            _uiTimer.Stop();
+
+            DispatchUI(() =>
+            {
+                var winner = GetOppositeColor(loser);
+                GameEnded?.Invoke(winner);
+                GameStatusChanged?.Invoke(
+                    $"Ліміт у {MoveTimeLimitSeconds} секунд вичерпано. " +
+                    $"Хід гравця {loser} не виконано — переміг інший гравець."
+                );
+            });
         }
 
-        public int GetCurrentScore()
-        {
-            return _currentGame?.GetScore() ?? 0;
-        }
-
-        public TimeSpan GetElapsedTime()
+        private void EndGame(string message, Color? winner = null)
         {
             if (!_isGameRunning)
-                return TimeSpan.Zero;
-            return DateTime.Now - _gameStartTime;
+                return;
+
+            _isGameRunning = false;
+            _isMoveInProgress = false;
+            _uiTimer.Stop();
+
+            DispatchUI(() =>
+            {
+                GameEnded?.Invoke(winner);
+                GameStatusChanged?.Invoke(message);
+            });
         }
+
+        private static Color GetOppositeColor(Color color) =>
+            color == Color.White ? Color.Black : Color.White;
+
+        private Color? DetermineWinner(Game game)
+        {
+            var score = game.GetScore();
+
+            if (score > 0)
+                return Color.White;
+            if (score < 0)
+                return Color.Black;
+
+            return null;
+        }
+
+        private void DispatchUI(Action action)
+        {
+            App.Current.Dispatcher.Invoke(action);
+        }
+
+        public Position? GetCurrentPosition() => _currentGame?.GetCurrentPosition();
+
+        public int GetCurrentScore() => _currentGame?.GetScore() ?? 0;
+
+        public TimeSpan GetElapsedTime() =>
+            _isGameRunning ? DateTime.Now - _gameStartTime : TimeSpan.Zero;
     }
 }
