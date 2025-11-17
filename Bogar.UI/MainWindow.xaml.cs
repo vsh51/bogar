@@ -99,12 +99,19 @@ namespace Bogar.UI
             });
         }
 
-        private void OnGameEnded()
+        private void OnGameEnded(BllColor? winner)
         {
             Dispatcher.Invoke(() =>
             {
                 StartMatchButton.IsEnabled = true;
                 StopMatchButton.IsEnabled = false;
+
+                GameTimerText.Text = winner switch
+                {
+                    BllColor.White => "White wins!",
+                    BllColor.Black => "Black wins!",
+                    _ => "Game over"
+                };
             });
         }
 

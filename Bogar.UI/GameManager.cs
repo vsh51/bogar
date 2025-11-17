@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Bogar.BLL.Game;
@@ -14,6 +13,7 @@ namespace Bogar.UI
         private bool _isGameRunning;
         private bool _isMoveInProgress;
         private DateTime _gameStartTime;
+        private DateTime _moveStartTime;
 
         private readonly DispatcherTimer _uiTimer;
 
@@ -22,10 +22,11 @@ namespace Bogar.UI
         public event Action<Move, Color>? MoveExecuted;
         public event Action<int>? ScoreUpdated;
         public event Action<string>? GameStatusChanged;
-        public event Action? GameEnded;
+        public event Action<Color?>? GameEnded;
         public event Action<TimeSpan>? TimerTick;
 
-        public bool IsGameActive => _currentGame != null && !_currentGame.IsGameOver();
+        public bool IsGameActive =>
+            _currentGame != null && !_currentGame.IsGameOver() && _isGameRunning;
 
         public GameManager()
         {
@@ -36,10 +37,15 @@ namespace Bogar.UI
 
             _uiTimer.Tick += (s, e) =>
             {
-                if (_isGameRunning)
+                if (!_isGameRunning)
+                    return;
+
+                var elapsed = DateTime.Now - _moveStartTime;
+                TimerTick?.Invoke(elapsed);
+
+                if (_isMoveInProgress && elapsed.TotalSeconds > MoveTimeLimitSeconds)
                 {
-                    var elapsed = DateTime.Now - _gameStartTime;
-                    TimerTick?.Invoke(elapsed);
+                    HandleMoveTimeout();
                 }
             };
         }
@@ -56,6 +62,7 @@ namespace Bogar.UI
                 _isGameRunning = true;
                 _isMoveInProgress = false;
                 _gameStartTime = DateTime.Now;
+                _moveStartTime = _gameStartTime;
 
                 _uiTimer.Start();
 
@@ -72,6 +79,7 @@ namespace Bogar.UI
         public void StopGame()
         {
             _isGameRunning = false;
+            _isMoveInProgress = false;
             _uiTimer.Stop();
             _currentGame = null;
 
@@ -99,35 +107,38 @@ namespace Bogar.UI
             if (game == null || !IsGameActive)
                 return;
 
-            using var cts = new CancellationTokenSource(
-                TimeSpan.FromSeconds(MoveTimeLimitSeconds)
-            );
+            _moveStartTime = DateTime.Now;
+
+            var moveColor = game.GetCurrentTurn();
 
             try
             {
-                await Task.Run(() =>
-                {
-                    game.DoNextMove();
-                }, cts.Token);
+                await Task.Run(() => game.DoNextMove());
+
+                if (!_isGameRunning || game != _currentGame)
+                    return;
 
                 var lastMove = game.Moves[^1];
                 var score = game.GetScore();
-                var currentTurn = game.GetCurrentTurn();
 
                 DispatchUI(() =>
                 {
-                    MoveExecuted?.Invoke(lastMove, currentTurn);
+                    MoveExecuted?.Invoke(lastMove, moveColor);
                     ScoreUpdated?.Invoke(score);
                 });
 
                 if (game.IsGameOver())
                 {
-                    EndGame("Game completed");
+                    var winner = DetermineWinner(game);
+                    var statusMessage = winner switch
+                    {
+                        Color.White => "Game completed — White wins",
+                        Color.Black => "Game completed — Black wins",
+                        _ => "Game completed — Draw"
+                    };
+
+                    EndGame(statusMessage, winner);
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                EndGame("Move timeout — game ended");
             }
             catch (Exception ex)
             {
@@ -135,18 +146,59 @@ namespace Bogar.UI
             }
         }
 
-        private void EndGame(string message)
+        private void HandleMoveTimeout()
         {
-            if (!_isGameRunning) return;
+            if (_currentGame == null || !_isGameRunning)
+                return;
+
+            var game = _currentGame;
+
+            var loser = game.GetCurrentTurn();
 
             _isGameRunning = false;
+            _isMoveInProgress = false;
             _uiTimer.Stop();
 
             DispatchUI(() =>
             {
-                GameEnded?.Invoke();
+                var winner = GetOppositeColor(loser);
+                GameEnded?.Invoke(winner);
+                GameStatusChanged?.Invoke(
+                    $"Ліміт у {MoveTimeLimitSeconds} секунд вичерпано. " +
+                    $"Хід гравця {loser} не виконано — переміг інший гравець."
+                );
+            });
+        }
+
+        private void EndGame(string message, Color? winner = null)
+        {
+            if (!_isGameRunning)
+                return;
+
+            _isGameRunning = false;
+            _isMoveInProgress = false;
+            _uiTimer.Stop();
+
+            DispatchUI(() =>
+            {
+                GameEnded?.Invoke(winner);
                 GameStatusChanged?.Invoke(message);
             });
+        }
+
+        private static Color GetOppositeColor(Color color) =>
+            color == Color.White ? Color.Black : Color.White;
+
+        private Color? DetermineWinner(Game game)
+        {
+            var score = game.GetScore();
+
+            if (score > 0)
+                return Color.White;
+            if (score < 0)
+                return Color.Black;
+
+            return null;
         }
 
         private void DispatchUI(Action action)
