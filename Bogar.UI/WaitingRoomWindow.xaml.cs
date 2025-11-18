@@ -15,6 +15,7 @@ namespace Bogar.UI
         private readonly string _lobbyIp;
         private readonly int _lobbyPort;
         private readonly string _userName;
+        private bool _isLeaving;
 
         public WaitingRoomWindow(GameClient client, string lobbyName, string lobbyIp, int lobbyPort, string userName)
         {
@@ -36,6 +37,7 @@ namespace Bogar.UI
             _client.GameStarted += OnGameStarted;
             _client.GameEnded += OnGameEnded;
             _client.ErrorReceived += OnError;
+            _client.Disconnected += OnDisconnected;
         }
 
         private void OnClientLog(string message) => Dispatcher.Invoke(() => AddStatus(message));
@@ -73,11 +75,15 @@ namespace Bogar.UI
             {
                 AddStatus($"Error: {error}");
                 StatusText.Text = error;
+
+                if (_isLeaving)
+                {
+                    NavigateToMainMenu();
+                    return;
+                }
+
                 MessageBox.Show(error, "Network Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                _client.Disconnect();
-                var joinLobbyWindow = new JoinLobbyWindow();
-                joinLobbyWindow.Show();
-                Close();
+                NavigateToMainMenu();
             });
         }
 
@@ -91,9 +97,15 @@ namespace Bogar.UI
 
         private void LeaveLobby_Click(object sender, RoutedEventArgs e)
         {
+            _isLeaving = true;
+            NavigateToMainMenu();
+        }
+
+        private void NavigateToMainMenu()
+        {
             _client.Disconnect();
-            var joinLobbyWindow = new JoinLobbyWindow();
-            joinLobbyWindow.Show();
+            var startWindow = new StartWindow();
+            startWindow.Show();
             Close();
         }
 
@@ -113,7 +125,19 @@ namespace Bogar.UI
             _client.GameStarted -= OnGameStarted;
             _client.GameEnded -= OnGameEnded;
             _client.ErrorReceived -= OnError;
+            _client.Disconnected -= OnDisconnected;
             _client.Dispose();
         }
     }
 }
+        private void OnDisconnected()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (_isLeaving)
+                    return;
+                StatusText.Text = "Server is down.";
+                MessageBox.Show("The server has been shut down.", "Disconnected", MessageBoxButton.OK, MessageBoxImage.Information);
+                NavigateToMainMenu();
+            });
+        }

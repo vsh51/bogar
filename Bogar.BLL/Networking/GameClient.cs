@@ -101,7 +101,7 @@ public sealed class GameClient : IDisposable
         catch (OperationCanceledException) { }
         catch (IOException)
         {
-            ErrorReceived?.Invoke("Server disconnected.");
+            ErrorReceived?.Invoke("Server shutdown — connection closed.");
         }
         catch (SocketException)
         {
@@ -114,6 +114,7 @@ public sealed class GameClient : IDisposable
         finally
         {
             Disconnect();
+            Disconnected?.Invoke();
         }
     }
 
@@ -244,3 +245,4 @@ public sealed class GameClient : IDisposable
         try { _tcpClient?.Dispose(); } catch { }
     }
 }
+    public event Action? Disconnected;
