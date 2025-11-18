@@ -19,10 +19,11 @@ public sealed class GameClient : IDisposable
     private Player.Player? _localBot;
 
     public event Action<string>? LogMessage;
-    public event Action<string>? MatchPreparing;
-    public event Action<string, Color>? GameStarted;
-    public event Action<string>? GameEnded;
-    public event Action<string>? ErrorReceived;
+public event Action<string>? MatchPreparing;
+public event Action<string, Color>? GameStarted;
+public event Action<string>? GameEnded;
+public event Action<string>? ErrorReceived;
+public event Action? Disconnected;
 
     public string? Nickname { get; private set; }
     public bool IsConnected => _tcpClient?.Connected ?? false;
@@ -245,4 +246,3 @@ public sealed class GameClient : IDisposable
         try { _tcpClient?.Dispose(); } catch { }
     }
 }
-    public event Action? Disconnected;
