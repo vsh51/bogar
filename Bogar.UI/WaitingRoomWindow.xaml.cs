@@ -117,6 +117,18 @@ namespace Bogar.UI
             }
         }
 
+        private void OnDisconnected()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (_isLeaving)
+                    return;
+                StatusText.Text = "Server is down.";
+                MessageBox.Show("The server has been shut down.", "Disconnected", MessageBoxButton.OK, MessageBoxImage.Information);
+                NavigateToMainMenu();
+            });
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
@@ -130,14 +142,3 @@ namespace Bogar.UI
         }
     }
 }
-        private void OnDisconnected()
-        {
-            Dispatcher.Invoke(() =>
-            {
-                if (_isLeaving)
-                    return;
-                StatusText.Text = "Server is down.";
-                MessageBox.Show("The server has been shut down.", "Disconnected", MessageBoxButton.OK, MessageBoxImage.Information);
-                NavigateToMainMenu();
-            });
-        }
