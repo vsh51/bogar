@@ -105,10 +105,15 @@ namespace Bogar.UI
                 targetList.RemoveAt(0);
             targetList.Add(moveString);
 
-            await AnimatePieceArrivalAsync(move, playerColor);
+            var animatedImage = await AnimatePieceArrivalAsync(move, playerColor);
             SyncBoardWithGameState();
             UpdatePieceCounters();
             UpdateScoreDisplay();
+
+            if (animatedImage != null)
+            {
+                AnimationCanvas.Children.Remove(animatedImage);
+            }
         }
 
         private void OnScoreUpdated(int score)
@@ -127,23 +132,23 @@ namespace Bogar.UI
             });
         }
 
-        private async Task AnimatePieceArrivalAsync(BllMove move, BllColor moverColor)
+        private async Task<Image?> AnimatePieceArrivalAsync(BllMove move, BllColor moverColor)
         {
             if (AnimationCanvas == null || !_pieceSourceElements.TryGetValue((moverColor, PieceExtensions.TypeOfPiece(move.Piece)), out var sourceElement))
-                return;
+                return null;
 
             var targetBorder = GetBorderForSquare(move.Square);
             if (sourceElement == null || targetBorder == null)
-                return;
+                return null;
 
             var start = GetElementCenterOnCanvas(sourceElement);
             var end = GetElementCenterOnCanvas(targetBorder);
             if (!start.HasValue || !end.HasValue)
-                return;
+                return null;
 
             var resourceKey = GetPieceResourceKey(moverColor, PieceExtensions.TypeOfPiece(move.Piece));
             if (TryFindResource(resourceKey) is not ImageSource imageSource)
-                return;
+                return null;
 
             var animatedImage = new Image
             {
@@ -168,17 +173,14 @@ namespace Bogar.UI
             var topAnimation = new DoubleAnimation(startTop, endTop, _moveAnimationDuration) { EasingFunction = easing };
 
             var tcs = new TaskCompletionSource();
-            leftAnimation.Completed += (s, e) =>
-            {
-                AnimationCanvas.Children.Remove(animatedImage);
-                tcs.TrySetResult();
-            };
+            leftAnimation.Completed += (s, e) => tcs.TrySetResult();
 
             animatedImage.BeginAnimation(Canvas.LeftProperty, leftAnimation);
             animatedImage.BeginAnimation(Canvas.TopProperty, topAnimation);
 
             await tcs.Task;
             await Task.Delay(100);
+            return animatedImage;
         }
 
         private Point? GetElementCenterOnCanvas(FrameworkElement element)
