@@ -5,13 +5,13 @@ using System.Collections.Generic;
 namespace Bogar.BLL.Game;
 public class Game
 {
-    private readonly Player.Player _whitePlayer;
-    private readonly Player.Player _blackPlayer;
+    private readonly IPlayer _whitePlayer;
+    private readonly IPlayer _blackPlayer;
     private readonly Position _position;
 
     public List<Move> Moves { get; private set; }
 
-    public Game(Player.Player pl1, Player.Player pl2)
+    public Game(IPlayer pl1, IPlayer pl2)
     {
         _whitePlayer = pl1;
         _blackPlayer = pl2;
@@ -33,7 +33,7 @@ public class Game
         }
 
         bool isWhiteTurn = (Moves.Count % 2 == 0);
-        Player.Player currentPlayer = isWhiteTurn ? _whitePlayer : _blackPlayer;
+        IPlayer currentPlayer = isWhiteTurn ? _whitePlayer : _blackPlayer;
         Color currentSide = isWhiteTurn ? Color.White : Color.Black;
 
         string moveString = currentPlayer.GetMove(Moves);

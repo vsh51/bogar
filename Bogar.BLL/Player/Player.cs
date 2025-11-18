@@ -1,9 +1,11 @@
 using System.Diagnostics;
-using System.Collections.Generic; 
-using System; 
-using Bogar.BLL.Core; 
+using System.Collections.Generic;
+using System;
+using Bogar.BLL.Core;
+
 namespace Bogar.BLL.Player;
-public class Player
+
+public class Player : IPlayer
 {
     private readonly string _path;
     
