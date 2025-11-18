@@ -191,7 +191,20 @@ namespace Bogar.UI
             try
             {
                 var transform = element.TransformToVisual(AnimationCanvas);
-                return transform.Transform(new Point(element.ActualWidth / 2, element.ActualHeight / 2));
+                var point = transform.Transform(new Point(0, 0));
+
+                if (element is Panel panel)
+                {
+                    point.X += panel.ActualWidth / 2;
+                    point.Y += panel.ActualHeight / 2;
+                }
+                else
+                {
+                    point.X += element.ActualWidth / 2;
+                    point.Y += element.ActualHeight / 2;
+                }
+
+                return point;
             }
             catch
             {
