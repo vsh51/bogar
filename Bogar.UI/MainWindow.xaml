@@ -124,27 +124,27 @@
                 <Rectangle Grid.Row="4" Fill="{DynamicResource LightSquareBrush}"/>
                 <Rectangle Grid.Row="5" Fill="{DynamicResource DarkSquareBrush}"/>
 
-                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="BlackPawnSource" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource bP}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="LeftPawnCount" Text="x8" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
-                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="BlackKnightSource" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource bN}" Width="40" Height="40"  Margin="0,0,6,0"/>
                     <TextBlock x:Name="LeftKnightCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="BlackBishopSource" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource bB}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="LeftBishopCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
-                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="BlackRookSource" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource bR}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="LeftRookCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
-                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="BlackQueenSource" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource bQ}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="LeftQueenCount" Text="x1" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
-                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="BlackKingSource" Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource bK}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="LeftKingCount" Text="x1" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
@@ -179,27 +179,27 @@
                 <Rectangle Grid.Row="4" Fill="{DynamicResource DarkSquareBrush}"/>
                 <Rectangle Grid.Row="5" Fill="{DynamicResource LightSquareBrush}"/>
 
-                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="WhitePawnSource" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource wP}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="RightPawnCount" Text="x8" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
-                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="WhiteKnightSource" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource wN}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="RightKnightCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="WhiteBishopSource" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource wB}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="RightBishopCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
-                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="WhiteRookSource" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource wR}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="RightRookCount" Text="x2" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
-                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="WhiteQueenSource" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource wQ}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="RightQueenCount" Text="x1" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
-                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="WhiteKingSource" Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="{StaticResource wK}" Width="40" Height="40" Margin="0,0,6,0"/>
                     <TextBlock x:Name="RightKingCount" Text="x1" FontSize="12" VerticalAlignment="Bottom"/>
                 </StackPanel>
@@ -210,5 +210,6 @@
             <Button x:Name="StartMatchButton" Content="Start Match" Width="100" Margin="8,0,0,0" Click="StartMatchButton_Click" Visibility="Collapsed" Style="{StaticResource PrimaryButton}"/>
             <Button x:Name="StopMatchButton" Content="Stop Match" Width="100" Margin="8,0,0,0" Click="StopMatchButton_Click" Visibility="Collapsed" Style="{StaticResource PrimaryButton}"/>
         </StackPanel>
+        <Canvas x:Name="AnimationCanvas" IsHitTestVisible="False" Panel.ZIndex="20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
     </Grid>
 </Window>
