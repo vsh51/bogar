@@ -59,7 +59,12 @@ public sealed class GameServer : IDisposable
 
         foreach (var client in _clients.Values)
         {
-            try { client.Dispose(); } catch { }
+            try
+            {
+                ClientDisconnected?.Invoke(client);
+                client.Dispose();
+            }
+            catch { }
         }
         _clients.Clear();
 
@@ -239,14 +244,35 @@ public sealed class GameServer : IDisposable
     {
         try
         {
-            while (client.TcpClient.Connected && !cancellationToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
+                if (!IsClientConnected(client.TcpClient))
+                    break;
                 await Task.Delay(1000, cancellationToken);
             }
         }
         catch
         {
             // ignored
+        }
+    }
+
+    private static bool IsClientConnected(TcpClient tcpClient)
+    {
+        try
+        {
+            if (!tcpClient.Connected)
+                return false;
+
+            var socket = tcpClient.Client;
+            if (socket == null)
+                return false;
+
+            return !(socket.Poll(0, SelectMode.SelectRead) && socket.Available == 0);
+        }
+        catch
+        {
+            return false;
         }
     }
 

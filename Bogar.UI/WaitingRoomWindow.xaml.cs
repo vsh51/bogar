@@ -74,6 +74,10 @@ namespace Bogar.UI
                 AddStatus($"Error: {error}");
                 StatusText.Text = error;
                 MessageBox.Show(error, "Network Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _client.Disconnect();
+                var joinLobbyWindow = new JoinLobbyWindow();
+                joinLobbyWindow.Show();
+                Close();
             });
         }
 

@@ -18,6 +18,7 @@ namespace Bogar.UI
         private readonly ObservableCollection<ClientListItem> _clients = new();
         private readonly DispatcherTimer _refreshTimer;
         private AdminMatchWindow? _matchWindow;
+        private bool _isRefreshingClients;
 
         public AdminWaitingRoomWindow(GameServer server, string lobbyName)
         {
@@ -90,6 +91,12 @@ namespace Bogar.UI
 
         private void RefreshClients()
         {
+            _isRefreshingClients = true;
+            var previouslySelected = ClientsListBox.SelectedItems
+                .OfType<ClientListItem>()
+                .Select(i => i.Client.Id)
+                .ToHashSet();
+
             _clients.Clear();
 
             foreach (var client in _server.GetConnectedClients())
@@ -98,12 +105,25 @@ namespace Bogar.UI
                 _clients.Add(new ClientListItem(client, inGame));
             }
 
+            ClientsListBox.SelectedItems.Clear();
+            foreach (var item in _clients)
+            {
+                if (previouslySelected.Contains(item.Client.Id) && !item.IsInGame)
+                {
+                    ClientsListBox.SelectedItems.Add(item);
+                }
+            }
+
             NoClientsText.Visibility = _clients.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            _isRefreshingClients = false;
             UpdateStartMatchButtonState();
         }
 
         private void ClientsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (_isRefreshingClients)
+                return;
+
             foreach (var item in e.AddedItems.OfType<ClientListItem>().Where(i => i.IsInGame).ToList())
             {
                 ClientsListBox.SelectedItems.Remove(item);

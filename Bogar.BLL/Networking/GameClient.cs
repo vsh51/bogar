@@ -1,5 +1,6 @@
 using Bogar.BLL.Core;
 using Bogar.BLL.Player;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -98,9 +99,21 @@ public sealed class GameClient : IDisposable
             }
         }
         catch (OperationCanceledException) { }
+        catch (IOException)
+        {
+            ErrorReceived?.Invoke("Server disconnected.");
+        }
+        catch (SocketException)
+        {
+            ErrorReceived?.Invoke("Connection lost.");
+        }
         catch (Exception ex)
         {
             ErrorReceived?.Invoke($"Network error: {ex.Message}");
+        }
+        finally
+        {
+            Disconnect();
         }
     }
 
