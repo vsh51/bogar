@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 using Bogar.BLL.Networking;
 using Bogar.BLL.Core;
@@ -151,6 +152,14 @@ namespace Bogar.UI
             Close();
             var startWindow = new StartWindow();
             startWindow.Show();
+        }
+
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
         }
 
         private string GetLocalIPAddress()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Input;
 using Bogar.BLL.Networking;
 using Bogar.BLL.Core;
 
@@ -90,6 +91,14 @@ namespace Bogar.UI
             var joinLobbyWindow = new JoinLobbyWindow();
             joinLobbyWindow.Show();
             Close();
+        }
+
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
         }
 
         protected override void OnClosed(EventArgs e)

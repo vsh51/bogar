@@ -6,13 +6,15 @@
         xmlns:local="clr-namespace:Bogar.UI"
         mc:Ignorable="d"
         Title="Admin Waiting Room"
-        Height="400"
-        Width="520"
+        Height="650"
+        Width="560"
+        MinHeight="560"
+        MinWidth="480"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        ResizeMode="NoResize">
+        ResizeMode="CanResize">
     <Window.Resources>
         <SolidColorBrush x:Key="PrimaryBrush" Color="#27AE60"/>
         <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#229954"/>
@@ -81,7 +83,7 @@
 
 
     </Window.Resources>
-    <Grid>
+    <Grid MouseLeftButtonDown="Window_MouseLeftButtonDown">
         <Border Background="{StaticResource CardBackground}" CornerRadius="10" Margin="20">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="25" ShadowDepth="0" Opacity="0.2" Color="#2C3E50"/>
