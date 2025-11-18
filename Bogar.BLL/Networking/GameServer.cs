@@ -278,7 +278,7 @@ public sealed class GameServer : IDisposable
                     {
                         try
                         {
-                            MoveExecuted?.Invoke(client1, client2, lastMove, moveColor);
+                            MoveExecuted?.Invoke(white, black, lastMove, moveColor);
                         }
                         catch { }
                     }
