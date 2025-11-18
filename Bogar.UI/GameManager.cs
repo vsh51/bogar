@@ -28,6 +28,8 @@ namespace Bogar.UI
         public bool IsGameActive =>
             _currentGame != null && !_currentGame.IsGameOver() && _isGameRunning;
 
+        public int MoveDelayMilliseconds { get; set; }
+
         public GameManager()
         {
             _uiTimer = new DispatcherTimer
@@ -126,6 +128,11 @@ namespace Bogar.UI
                     MoveExecuted?.Invoke(lastMove, moveColor);
                     ScoreUpdated?.Invoke(score);
                 });
+
+                if (MoveDelayMilliseconds > 0)
+                {
+                    await Task.Delay(MoveDelayMilliseconds);
+                }
 
                 if (game.IsGameOver())
                 {

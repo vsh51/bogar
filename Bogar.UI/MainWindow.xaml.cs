@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -35,6 +36,7 @@ namespace Bogar.UI
 
             this.whiteBotPath = whiteBotPath;
             this.blackBotPath = blackBotPath;
+            gameManager.MoveDelayMilliseconds = 650;
 
             LeftMovesList.ItemsSource = leftMoves;
             RightMovesList.ItemsSource = rightMoves;
@@ -88,22 +90,25 @@ namespace Bogar.UI
             GameTimerText.Text = elapsed.ToString(@"mm\:ss\:ff");
         }
 
-        private void OnMoveExecuted(BllMove move, BllColor playerColor)
+        private async void OnMoveExecuted(BllMove move, BllColor playerColor)
         {
-            Dispatcher.Invoke(() =>
+            if (!Dispatcher.CheckAccess())
             {
-                string moveString = $"{GetPieceChar(move.Piece)}{SquareExtensions.ToAlgebraic(move.Square).ToUpper()}";
-                
-                var targetList = playerColor == BllColor.White ? rightMoves : leftMoves;
-                if (targetList.Count >= MaxSideMoves)
-                    targetList.RemoveAt(0);
-                targetList.Add(moveString);
+                await Dispatcher.InvokeAsync(() => OnMoveExecuted(move, playerColor));
+                return;
+            }
 
-                AnimatePieceArrival(move, playerColor);
-                SyncBoardWithGameState();
-                UpdatePieceCounters();
-                UpdateScoreDisplay();
-            });
+            string moveString = $"{GetPieceChar(move.Piece)}{SquareExtensions.ToAlgebraic(move.Square).ToUpper()}";
+
+            var targetList = playerColor == BllColor.White ? rightMoves : leftMoves;
+            if (targetList.Count >= MaxSideMoves)
+                targetList.RemoveAt(0);
+            targetList.Add(moveString);
+
+            await AnimatePieceArrivalAsync(move, playerColor);
+            SyncBoardWithGameState();
+            UpdatePieceCounters();
+            UpdateScoreDisplay();
         }
 
         private void OnScoreUpdated(int score)
@@ -122,7 +127,7 @@ namespace Bogar.UI
             });
         }
 
-        private void AnimatePieceArrival(BllMove move, BllColor moverColor)
+        private async Task AnimatePieceArrivalAsync(BllMove move, BllColor moverColor)
         {
             if (AnimationCanvas == null || !_pieceSourceElements.TryGetValue((moverColor, PieceExtensions.TypeOfPiece(move.Piece)), out var sourceElement))
                 return;
@@ -162,10 +167,18 @@ namespace Bogar.UI
             var leftAnimation = new DoubleAnimation(startLeft, endLeft, _moveAnimationDuration) { EasingFunction = easing };
             var topAnimation = new DoubleAnimation(startTop, endTop, _moveAnimationDuration) { EasingFunction = easing };
 
-            leftAnimation.Completed += (s, e) => AnimationCanvas.Children.Remove(animatedImage);
+            var tcs = new TaskCompletionSource();
+            leftAnimation.Completed += (s, e) =>
+            {
+                AnimationCanvas.Children.Remove(animatedImage);
+                tcs.TrySetResult();
+            };
 
             animatedImage.BeginAnimation(Canvas.LeftProperty, leftAnimation);
             animatedImage.BeginAnimation(Canvas.TopProperty, topAnimation);
+
+            await tcs.Task;
+            await Task.Delay(100);
         }
 
         private Point? GetElementCenterOnCanvas(FrameworkElement element)
