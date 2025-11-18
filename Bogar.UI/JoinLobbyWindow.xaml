@@ -6,13 +6,15 @@
         xmlns:local="clr-namespace:Bogar.UI"
         mc:Ignorable="d"
         Title="Join Lobby"
-        Height="580"
-        Width="500"
+        Height="680"
+        Width="560"
+        MinHeight="560"
+        MinWidth="460"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        ResizeMode="NoResize">
+        ResizeMode="CanResize">
     <Window.Resources>
         <SolidColorBrush x:Key="PrimaryBrush" Color="#27AE60"/>
         <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#229954"/>
@@ -129,7 +131,7 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Border Background="White" CornerRadius="10">
+    <Border Background="White" CornerRadius="10" MouseLeftButtonDown="Window_MouseLeftButtonDown">
         <Border.Effect>
             <DropShadowEffect BlurRadius="25" ShadowDepth="0" Opacity="0.2" Color="#2C3E50"/>
         </Border.Effect>

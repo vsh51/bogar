@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Input;
 using Microsoft.Win32;
 using Bogar.BLL.Networking;
 
@@ -128,6 +129,14 @@ namespace Bogar.UI
             var startWindow = new StartWindow();
             startWindow.Show();
             Close();
+        }
+
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
         }
     }
 }

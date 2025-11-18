@@ -6,13 +6,15 @@
         xmlns:local="clr-namespace:Bogar.UI"
         mc:Ignorable="d"
         Title="Create Lobby"
-        Height="340"
-        Width="440"
+        Height="420"
+        Width="480"
+        MinHeight="360"
+        MinWidth="420"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        ResizeMode="NoResize">
+        ResizeMode="CanResize">
     <Window.Resources>
         <SolidColorBrush x:Key="PrimaryBrush" Color="#27AE60"/>
         <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#229954"/>
@@ -69,7 +71,7 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Grid>
+    <Grid MouseLeftButtonDown="Window_MouseLeftButtonDown">
         <Border Background="White" CornerRadius="10" Margin="20">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="25" ShadowDepth="0" Opacity="0.2" Color="#2C3E50"/>
