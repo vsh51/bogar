@@ -8,7 +8,8 @@ using System.Threading;
 namespace Bogar.BLL.Networking;
 
 /// <summary>
-/// IPlayer implementation that proxies move requests to a connected network client.
+/// IPlayer implementation that proxies move requests to a connected network
+/// client.
 /// </summary>
 public sealed class NetworkPlayer : IPlayer, IDisposable
 {
@@ -31,13 +32,15 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
         return GetMoveAsync(moves).GetAwaiter().GetResult();
     }
 
-    private async Task<string> GetMoveAsync(List<Move> moves, CancellationToken cancellationToken = default)
+    private async Task<string> GetMoveAsync(
+        List<Move> moves, CancellationToken cancellationToken = default)
     {
         await _sendLock.WaitAsync(cancellationToken);
         try
         {
             var payload = SerializeMoves(moves);
-            var message = new NetworkMessage(MessageType.ServerRequestMove, payload);
+            var message = new NetworkMessage(
+                MessageType.ServerRequestMove, payload);
             var bytes = message.Serialize();
             await _stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
             await _stream.FlushAsync(cancellationToken);
@@ -47,7 +50,9 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
             _sendLock.Release();
         }
 
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        using var timeoutCts = CancellationTokenSource
+            .CreateLinkedTokenSource(cancellationToken);
+
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(30));
 
         var response = await _reader.ReadMessageAsync(timeoutCts.Token);
@@ -56,38 +61,49 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
         {
             var move = response.GetText();
             if (string.IsNullOrWhiteSpace(move))
-                throw new InvalidOperationException("Client returned empty move");
+                throw new InvalidOperationException(
+                    "Client returned empty move");
             return move.Trim();
         }
 
         if (response.Type == MessageType.ClientDisconnect)
         {
-            throw new InvalidOperationException($"Client {_nickname} disconnected: {response.GetText()}");
+            throw new InvalidOperationException(
+                $"Client {_nickname} disconnected: {response.GetText()}");
         }
 
-        throw new InvalidOperationException($"Unexpected response from {_nickname}: {response.Type}");
+        throw new InvalidOperationException(
+            $"Unexpected response from {_nickname}: {response.Type}");
     }
 
-    public async Task SendMatchPrepareAsync(string opponentNickname, CancellationToken cancellationToken)
+    public async Task SendMatchPrepareAsync(
+        string opponentNickname, CancellationToken cancellationToken)
     {
-        var message = NetworkMessage.CreateText(MessageType.ServerMatchPrepare, opponentNickname);
+        var message = NetworkMessage.CreateText(
+            MessageType.ServerMatchPrepare, opponentNickname);
         await SendAsync(message, cancellationToken);
     }
 
-    public async Task SendGameStartAsync(string opponentNickname, Color color, CancellationToken cancellationToken)
+    public async Task SendGameStartAsync(
+        string opponentNickname, Color color,
+        CancellationToken cancellationToken)
     {
         var payload = $"{opponentNickname}|{color}";
-        var message = NetworkMessage.CreateText(MessageType.ServerGameStart, payload);
+        var message = NetworkMessage.CreateText(
+            MessageType.ServerGameStart, payload);
         await SendAsync(message, cancellationToken);
     }
 
-    public async Task SendGameEndAsync(string result, CancellationToken cancellationToken)
+    public async Task SendGameEndAsync(
+        string result, CancellationToken cancellationToken)
     {
-        var message = NetworkMessage.CreateText(MessageType.ServerGameEnd, result);
+        var message = NetworkMessage.CreateText(
+            MessageType.ServerGameEnd, result);
         await SendAsync(message, cancellationToken);
     }
 
-    private async Task SendAsync(NetworkMessage message, CancellationToken cancellationToken)
+    private async Task SendAsync(
+        NetworkMessage message, CancellationToken cancellationToken)
     {
         var bytes = message.Serialize();
         await _sendLock.WaitAsync(cancellationToken);

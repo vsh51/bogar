@@ -7,8 +7,5 @@ namespace Bogar.BLL.Player;
 /// </summary>
 public interface IPlayer
 {
-    /// <summary>
-    /// Returns the next move string given the history so far.
-    /// </summary>
     string GetMove(List<Move> moves);
 }

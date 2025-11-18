@@ -15,7 +15,8 @@ public sealed class MessageReader
         _stream = stream;
     }
 
-    public async Task<NetworkMessage> ReadMessageAsync(CancellationToken cancellationToken)
+    public async Task<NetworkMessage> ReadMessageAsync(
+        CancellationToken cancellationToken)
     {
         await ReadFullyAsync(_header, 0, _header.Length, cancellationToken);
 
@@ -23,7 +24,8 @@ public sealed class MessageReader
         var payloadLength = BitConverter.ToInt32(_header, 1);
 
         if (payloadLength < 0 || payloadLength > 50_000_000)
-            throw new InvalidOperationException($"Invalid payload length: {payloadLength}");
+            throw new InvalidOperationException(
+                $"Invalid payload length: {payloadLength}");
 
         byte[] payload = Array.Empty<byte>();
         if (payloadLength > 0)
@@ -35,14 +37,22 @@ public sealed class MessageReader
         return new NetworkMessage(type, payload);
     }
 
-    private async Task ReadFullyAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    private async Task ReadFullyAsync(
+        byte[] buffer,
+        int offset, int count,
+        CancellationToken cancellationToken)
     {
         int read = 0;
         while (read < count)
         {
-            int bytesRead = await _stream.ReadAsync(buffer, offset + read, count - read, cancellationToken);
+            int bytesRead = await _stream.ReadAsync(
+                buffer, offset + read,
+                count - read, cancellationToken);
+
             if (bytesRead == 0)
-                throw new InvalidOperationException("Stream closed unexpectedly");
+                throw new InvalidOperationException(
+                    "Stream closed unexpectedly");
+
             read += bytesRead;
         }
     }

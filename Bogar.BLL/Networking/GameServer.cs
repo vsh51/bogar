@@ -155,8 +155,10 @@ public sealed class GameServer : IDisposable
         {
             try
             {
-                var tcpClient = await _listener.AcceptTcpClientAsync(_cancellationTokenSource.Token);
-                _ = Task.Run(() => HandleClientAsync(tcpClient, _cancellationTokenSource.Token));
+                var tcpClient = await _listener.AcceptTcpClientAsync(
+                    _cancellationTokenSource.Token);
+                _ = Task.Run(() => HandleClientAsync(tcpClient,
+                    _cancellationTokenSource.Token));
             }
             catch (OperationCanceledException)
             {
@@ -172,7 +174,8 @@ public sealed class GameServer : IDisposable
         }
     }
 
-    private async Task HandleClientAsync(TcpClient tcpClient, CancellationToken cancellationToken)
+    private async Task HandleClientAsync(
+        TcpClient tcpClient, CancellationToken cancellationToken)
     {
         var clientId = Guid.NewGuid();
         ConnectedClient? connected = null;
@@ -182,10 +185,12 @@ public sealed class GameServer : IDisposable
             var stream = tcpClient.GetStream();
             var reader = new MessageReader(stream);
 
-            var registerMessage = await reader.ReadMessageAsync(cancellationToken);
+            var registerMessage = await reader.ReadMessageAsync(
+                cancellationToken);
             if (registerMessage.Type != MessageType.ClientRegister)
             {
-                await SendErrorAsync(stream, "Expected register message", cancellationToken);
+                await SendErrorAsync(stream,
+                    "Expected register message", cancellationToken);
                 tcpClient.Close();
                 return;
             }
@@ -193,7 +198,8 @@ public sealed class GameServer : IDisposable
             var nickname = registerMessage.GetText().Trim();
             if (string.IsNullOrWhiteSpace(nickname) || nickname.Length > 100)
             {
-                await SendErrorAsync(stream, "Invalid nickname", cancellationToken);
+                await SendErrorAsync(stream,
+                    "Invalid nickname", cancellationToken);
                 tcpClient.Close();
                 return;
             }
@@ -208,9 +214,11 @@ public sealed class GameServer : IDisposable
 
             _clients[clientId] = connected;
 
-            var ack = NetworkMessage.CreateText(MessageType.ServerRegisterAck, "OK");
+            var ack = NetworkMessage.CreateText(
+                MessageType.ServerRegisterAck, "OK");
             var ackBytes = ack.Serialize();
-            await stream.WriteAsync(ackBytes, 0, ackBytes.Length, cancellationToken);
+            await stream.WriteAsync(
+                ackBytes, 0, ackBytes.Length, cancellationToken);
 
             LogMessage?.Invoke($"Client connected: {nickname}");
             ClientConnected?.Invoke(connected);
@@ -240,7 +248,8 @@ public sealed class GameServer : IDisposable
         }
     }
 
-    private async Task MonitorClientAsync(ConnectedClient client, CancellationToken cancellationToken)
+    private async Task MonitorClientAsync(
+        ConnectedClient client, CancellationToken cancellationToken)
     {
         try
         {
@@ -253,7 +262,7 @@ public sealed class GameServer : IDisposable
         }
         catch
         {
-            // ignored
+            // TODO: We need to do smth.
         }
     }
 
@@ -268,7 +277,8 @@ public sealed class GameServer : IDisposable
             if (socket == null)
                 return false;
 
-            return !(socket.Poll(0, SelectMode.SelectRead) && socket.Available == 0);
+            return !(socket.Poll(
+                0, SelectMode.SelectRead) && socket.Available == 0);
         }
         catch
         {
@@ -276,7 +286,9 @@ public sealed class GameServer : IDisposable
         }
     }
 
-    private async Task RunGameAsync(ConnectedClient white, ConnectedClient black, CancellationToken cancellationToken)
+    private async Task RunGameAsync(
+        ConnectedClient white, ConnectedClient black,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -285,8 +297,10 @@ public sealed class GameServer : IDisposable
 
             await Task.Delay(500, cancellationToken);
 
-            await white.Player.SendGameStartAsync(black.Nickname, Color.White, cancellationToken);
-            await black.Player.SendGameStartAsync(white.Nickname, Color.Black, cancellationToken);
+            await white.Player.SendGameStartAsync(
+                black.Nickname, Color.White, cancellationToken);
+            await black.Player.SendGameStartAsync(
+                white.Nickname, Color.Black, cancellationToken);
 
             GameStarted?.Invoke(white, black);
 
@@ -304,7 +318,8 @@ public sealed class GameServer : IDisposable
                     {
                         try
                         {
-                            MoveExecuted?.Invoke(white, black, lastMove, moveColor);
+                            MoveExecuted?.Invoke(
+                                white, black, lastMove, moveColor);
                         }
                         catch { }
                     }
@@ -343,12 +358,16 @@ public sealed class GameServer : IDisposable
         }
     }
 
-    private static async Task NotifyMatchStartingAsync(ConnectedClient target, ConnectedClient opponent, CancellationToken cancellationToken)
+    private static async Task NotifyMatchStartingAsync(
+        ConnectedClient target, ConnectedClient opponent,
+        CancellationToken cancellationToken)
     {
-        await target.Player.SendMatchPrepareAsync(opponent.Nickname, cancellationToken);
+        await target.Player.SendMatchPrepareAsync(
+            opponent.Nickname, cancellationToken);
     }
 
-    private static async Task SendErrorAsync(NetworkStream stream, string error, CancellationToken cancellationToken)
+    private static async Task SendErrorAsync(
+        NetworkStream stream, string error, CancellationToken cancellationToken)
     {
         var message = NetworkMessage.CreateText(MessageType.ServerError, error);
         var bytes = message.Serialize();

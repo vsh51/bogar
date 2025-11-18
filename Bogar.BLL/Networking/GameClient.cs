@@ -19,16 +19,19 @@ public sealed class GameClient : IDisposable
     private Player.Player? _localBot;
 
     public event Action<string>? LogMessage;
-public event Action<string>? MatchPreparing;
-public event Action<string, Color>? GameStarted;
-public event Action<string>? GameEnded;
-public event Action<string>? ErrorReceived;
-public event Action? Disconnected;
+    public event Action<string>? MatchPreparing;
+    public event Action<string, Color>? GameStarted;
+    public event Action<string>? GameEnded;
+    public event Action<string>? ErrorReceived;
+    public event Action? Disconnected;
 
     public string? Nickname { get; private set; }
     public bool IsConnected => _tcpClient?.Connected ?? false;
 
-    public async Task<bool> ConnectAsync(string host, int port, string nickname, string botPath, CancellationToken cancellationToken = default)
+    public async Task<bool> ConnectAsync(
+        string host, int port,
+        string nickname, string botPath,
+        CancellationToken cancellationToken = default)
     {
         if (!File.Exists(botPath))
         {
@@ -45,7 +48,9 @@ public event Action? Disconnected;
             _reader = new MessageReader(_stream);
             Nickname = nickname;
 
-            var register = NetworkMessage.CreateText(MessageType.ClientRegister, nickname);
+            var register = NetworkMessage.CreateText(
+                MessageType.ClientRegister, nickname
+            );
             await SendAsync(register, cancellationToken);
 
             var ack = await _reader.ReadMessageAsync(cancellationToken);
@@ -56,7 +61,8 @@ public event Action? Disconnected;
             }
 
             LogMessage?.Invoke("Connected to server.");
-            _ = Task.Run(() => ListenAsync(cancellationToken), cancellationToken);
+            _ = Task.Run(() => ListenAsync(
+                cancellationToken), cancellationToken);
             return true;
         }
         catch (Exception ex)
@@ -72,7 +78,9 @@ public event Action? Disconnected;
         {
             while (IsConnected && !cancellationToken.IsCancellationRequested)
             {
-                var message = await _reader!.ReadMessageAsync(cancellationToken);
+                var message = await _reader!.ReadMessageAsync(
+                    cancellationToken
+                );
 
                 switch (message.Type)
                 {
@@ -82,13 +90,15 @@ public event Action? Disconnected;
                     case MessageType.ServerGameStart:
                         var parts = message.GetText().Split('|');
                         var opponent = parts.ElementAtOrDefault(0) ?? "Unknown";
-                        var color = parts.Length > 1 && Enum.TryParse<Color>(parts[1], out var parsedColor)
+                        var color = parts.Length > 1
+                            && Enum.TryParse<Color>(parts[1], out var parsedColor)
                             ? parsedColor
                             : Color.White;
                         GameStarted?.Invoke(opponent, color);
                         break;
                     case MessageType.ServerRequestMove:
-                        await HandleMoveRequestAsync(message.Payload, cancellationToken);
+                        await HandleMoveRequestAsync(
+                            message.Payload, cancellationToken);
                         break;
                     case MessageType.ServerGameEnd:
                         GameEnded?.Invoke(message.GetText());
@@ -119,7 +129,8 @@ public event Action? Disconnected;
         }
     }
 
-    private async Task HandleMoveRequestAsync(byte[] payload, CancellationToken cancellationToken)
+    private async Task HandleMoveRequestAsync(
+        byte[] payload, CancellationToken cancellationToken)
     {
         if (_localBot == null)
         {
@@ -128,7 +139,8 @@ public event Action? Disconnected;
         }
 
         var payloadText = Encoding.UTF8.GetString(payload);
-        var lines = payloadText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        var lines = payloadText
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries);
         var moves = new List<Move>();
 
         if (lines.Length > 0 && int.TryParse(lines[0], out var moveCount))
@@ -137,7 +149,12 @@ public event Action? Disconnected;
             int index = 0;
             foreach (var move in moveStrings)
             {
-                if (TryParseMove(move.Trim(), index % 2 == 0 ? Color.White : Color.Black, out var parsed))
+                if (
+                    TryParseMove(
+                        move.Trim(),
+                        index % 2 == 0 ? Color.White : Color.Black,
+                        out var parsed)
+                )
                 {
                     moves.Add(parsed);
                 }
@@ -152,21 +169,25 @@ public event Action? Disconnected;
         }
         catch (Exception ex)
         {
-            await SendErrorAsync($"Bot execution error: {ex.Message}", cancellationToken);
+            await SendErrorAsync(
+                $"Bot execution error: {ex.Message}", cancellationToken);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(resultMove))
         {
-            await SendErrorAsync("Bot returned empty move", cancellationToken);
+            await SendErrorAsync(
+                "Bot returned empty move", cancellationToken);
             return;
         }
 
-        var response = NetworkMessage.CreateText(MessageType.ClientMoveResponse, resultMove.Trim());
+        var response = NetworkMessage.CreateText(
+            MessageType.ClientMoveResponse, resultMove.Trim());
         await SendAsync(response, cancellationToken);
     }
 
-    private static bool TryParseMove(string moveString, Color color, out Move move)
+    private static bool TryParseMove(
+        string moveString, Color color, out Move move)
     {
         move = default;
         if (string.IsNullOrWhiteSpace(moveString) || moveString.Length < 3)

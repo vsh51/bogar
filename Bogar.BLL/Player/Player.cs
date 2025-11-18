@@ -8,7 +8,7 @@ namespace Bogar.BLL.Player;
 public class Player : IPlayer
 {
     private readonly string _path;
-    
+
     public Player(string path)
     {
         _path = path;
@@ -33,36 +33,29 @@ public class Player : IPlayer
                 process.Start();
                 using (StreamWriter writer = process.StandardInput)
                 {
-                    
-                    
-                    
                     writer.WriteLine(moves.Count);
-                    
+
                     foreach (Move move in moves)
                     {
-                        
-                        
-                        
-                        
                         writer.WriteLine(move.ToString());
                     }
                 } 
 
-                
                 string newMove = process.StandardOutput.ReadLine();
                 string errors = process.StandardError.ReadToEnd();
-                
+
                 process.WaitForExit();
                 if (!string.IsNullOrEmpty(errors))
                 {
-                    throw new Exception($"Помилка виконання бота ({_path}): {errors}");
+                    throw new Exception(
+                        $"Помилка виконання бота ({_path}): {errors}"
+                    );
                 }
-                
+
                 return newMove ?? string.Empty;
             }
             catch (Exception ex)
             {
-                
                 Console.WriteLine($"Не вдалося запустити бота: {ex.Message}");
                 return string.Empty; 
             }

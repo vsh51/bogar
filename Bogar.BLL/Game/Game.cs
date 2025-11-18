@@ -29,7 +29,8 @@ public class Game
     {
         if (Moves.Count >= 32)
         {
-            throw new InvalidOperationException("Game is over. Cannot make more moves.");
+            throw new InvalidOperationException(
+                "Game is over. Cannot make more moves.");
         }
 
         bool isWhiteTurn = (Moves.Count % 2 == 0);
@@ -39,7 +40,8 @@ public class Game
         string moveString = currentPlayer.GetMove(Moves);
         if (string.IsNullOrEmpty(moveString))
         {
-            throw new InvalidOperationException($"Bot ({currentSide}) returned a null or empty move.");
+            throw new InvalidOperationException(
+                $"Bot ({currentSide}) returned a null or empty move.");
         }
 
         Move newMove;
@@ -49,7 +51,8 @@ public class Game
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Bot ({currentSide}) returned an invalid move string: '{moveString}'.",
+            throw new InvalidOperationException(
+                $"Bot ({currentSide}) returned an invalid move string: '{moveString}'.",
                 ex);
         }
 
@@ -58,7 +61,6 @@ public class Game
         Moves.Add(newMove);
     }
 
-    // Add these new methods
     public Position GetCurrentPosition()
     {
         return new Position(_position);
@@ -78,7 +80,8 @@ public class Game
     {
         if (string.IsNullOrEmpty(moveString) || moveString.Length < 2)
         {
-            throw new FormatException($"Invalid move string format: {moveString}");
+            throw new FormatException(
+                $"Invalid move string format: {moveString}");
         }
 
         char pieceChar = moveString[0];
@@ -86,7 +89,8 @@ public class Game
         string squareString = moveString.Substring(1).ToUpper();
         if (!Enum.TryParse<Square>(squareString, out Square square))
         {
-            throw new FormatException($"Invalid square in move: {squareString}");
+            throw new FormatException(
+                $"Invalid square in move: {squareString}");
         }
 
         Piece piece;
@@ -100,7 +104,8 @@ public class Game
                 'R' => Piece.WhiteRook,
                 'Q' => Piece.WhiteQueen,
                 'K' => Piece.WhiteKing,
-                _ => throw new FormatException($"Invalid piece type in move: {pieceChar}")
+                _ => throw new FormatException(
+                    $"Invalid piece type in move: {pieceChar}")
             };
         }
         else
@@ -113,7 +118,8 @@ public class Game
                 'R' => Piece.BlackRook,
                 'Q' => Piece.BlackQueen,
                 'K' => Piece.BlackKing,
-                _ => throw new FormatException($"Invalid piece type in move: {pieceChar}")
+                _ => throw new FormatException(
+                    $"Invalid piece type in move: {pieceChar}")
             };
         }
         return new Move(piece, square);
