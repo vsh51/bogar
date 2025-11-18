@@ -17,6 +17,7 @@ namespace Bogar.UI
         private readonly ObservableCollection<string> _logMessages = new();
         private readonly ObservableCollection<ClientListItem> _clients = new();
         private readonly DispatcherTimer _refreshTimer;
+        private AdminMatchWindow? _matchWindow;
 
         public AdminWaitingRoomWindow(GameServer server, string lobbyName)
         {
@@ -138,6 +139,9 @@ namespace Bogar.UI
             {
                 _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Match queued: {client1.Nickname} vs {client2.Nickname}");
                 ClientsListBox.UnselectAll();
+                _matchWindow?.Close();
+                _matchWindow = new AdminMatchWindow(_server, client1.Id, client2.Id, client1.Nickname, client2.Nickname);
+                _matchWindow.Show();
             }
             else if (!string.IsNullOrEmpty(error))
             {
@@ -187,6 +191,7 @@ namespace Bogar.UI
             _server.GameStarted -= OnGameStarted;
             _server.GameEnded -= OnGameEnded;
 
+            _matchWindow?.Close();
             _server.Dispose();
         }
 

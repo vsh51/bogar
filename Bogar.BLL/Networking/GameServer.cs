@@ -25,6 +25,7 @@ public sealed class GameServer : IDisposable
     public event Action<ConnectedClient>? ClientDisconnected;
     public event Action<ConnectedClient, ConnectedClient>? GameStarted;
     public event Action<ConnectedClient, ConnectedClient, Color?>? GameEnded;
+    public event Action<ConnectedClient, ConnectedClient, Move, Color>? MoveExecuted;
 
     public int Port { get; }
 
@@ -269,7 +270,18 @@ public sealed class GameServer : IDisposable
             {
                 try
                 {
+                    var moveColor = game.GetCurrentTurn();
                     await Task.Run(() => game.DoNextMove(), cancellationToken);
+
+                    var lastMove = game.Moves.LastOrDefault();
+                    if (lastMove.Piece != Piece.NoPiece)
+                    {
+                        try
+                        {
+                            MoveExecuted?.Invoke(client1, client2, lastMove, moveColor);
+                        }
+                        catch { }
+                    }
                     await Task.Delay(50, cancellationToken);
                 }
                 catch (Exception ex)
