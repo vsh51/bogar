@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using Microsoft.Win32;
+using Bogar.BLL.Networking;
 
 namespace Bogar.UI
 {
@@ -13,17 +14,61 @@ namespace Bogar.UI
 
         private void BrowseBotExe_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog();
-            dlg.Filter = "Executable Files (*.exe)|*.exe";
+            var dlg = new OpenFileDialog
+            {
+                Filter = "Executable Files (*.exe)|*.exe"
+            };
             if (dlg.ShowDialog() == true)
             {
                 BotExeTextBox.Text = dlg.FileName;
             }
         }
 
-        private void JoinLobby_Click(object sender, RoutedEventArgs e)
+        private async void JoinLobby_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ValidateInputs(out var port))
+                return;
+
+            JoinLobbyButton.IsEnabled = false;
+
+            try
+            {
+                var client = new GameClient();
+                bool connected = await client.ConnectAsync(
+                    LobbyIpTextBox.Text.Trim(),
+                    port,
+                    UserNameTextBox.Text.Trim(),
+                    BotExeTextBox.Text.Trim());
+
+                if (connected)
+                {
+                    var waitingRoom = new WaitingRoomWindow(
+                        client,
+                        LobbyNameTextBox.Text.Trim(),
+                        LobbyIpTextBox.Text.Trim(),
+                        port,
+                        UserNameTextBox.Text.Trim());
+                    waitingRoom.Show();
+                    Close();
+                }
+                else
+                {
+                    client.Dispose();
+                    MessageBox.Show("Failed to connect to server.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    JoinLobbyButton.IsEnabled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Connection error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                JoinLobbyButton.IsEnabled = true;
+            }
+        }
+
+        private bool ValidateInputs(out int port)
         {
             bool valid = true;
+            port = 0;
 
             if (string.IsNullOrWhiteSpace(LobbyIpTextBox.Text))
             {
@@ -33,6 +78,16 @@ namespace Bogar.UI
             else
             {
                 LobbyIpError.Text = "";
+            }
+
+            if (!int.TryParse(PortTextBox.Text, out port) || port < 1024 || port > 65535)
+            {
+                PortError.Text = "Enter a valid port (1024-65535)";
+                valid = false;
+            }
+            else
+            {
+                PortError.Text = "";
             }
 
             if (string.IsNullOrWhiteSpace(LobbyNameTextBox.Text))
@@ -65,19 +120,14 @@ namespace Bogar.UI
                 UserNameError.Text = "";
             }
 
-            if (!valid)
-                return;
-
-            var waitingRoom = new WaitingRoomWindow(); waitingRoom.Show();
-            this.Close();
+            return valid;
         }
-
 
         private void CloseWindow_Click(object sender, RoutedEventArgs e)
         {
             var startWindow = new StartWindow();
             startWindow.Show();
-            this.Close();
+            Close();
         }
     }
 }

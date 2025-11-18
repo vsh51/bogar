@@ -99,32 +99,85 @@
                         </StackPanel>
                     </Grid>
                 </Border>
-                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,24,0,0">
-                    <TextBlock x:Name="LobbyNameText" Text="Lobby: ChessRoom42" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,4" HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="LobbyIpText" Text="IP: 192.168.1.100" FontSize="15" Foreground="{StaticResource TextLightBrush}" Margin="0,0,0,8" HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="ParticipantsText" Text="Учасників: 2" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8" HorizontalAlignment="Center"/>
-                    <!-- Список учасників -->
-                    <ItemsControl Margin="0,0,0,18" HorizontalAlignment="Center">
-                        <ItemsControl.Items>
-                            <TextBlock Text="• Ivan Petrenko" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,2"/>
-                            <TextBlock Text="• Olena Shevchenko" FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,2"/>
-                        </ItemsControl.Items>
-                    </ItemsControl>
-                    <TextBlock Text="Waiting for participants to join..." FontSize="15" Foreground="{StaticResource TextLightBrush}" Margin="0,0,0,18" HorizontalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,0">
-                        <Button Content="Start Match"
+                <Grid Grid.Row="1" Margin="0,24,0,20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Lobby info -->
+                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,12">
+                        <TextBlock x:Name="LobbyNameText" Text="Lobby: ChessRoom42" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,4" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="LobbyIpText" Text="IP: 192.168.1.100" FontSize="15" Foreground="{StaticResource TextLightBrush}" Margin="0,0,0,4" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="LobbyPortText" Text="Port: 8080" FontSize="15" Foreground="{StaticResource TextLightBrush}" Margin="0,0,0,8" HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Connected clients -->
+                    <StackPanel Grid.Row="1" Margin="0,0,0,12" HorizontalAlignment="Center">
+                        <TextBlock Text="Connected Clients:" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,6" HorizontalAlignment="Center"/>
+                        <ListBox x:Name="ClientsListBox"
+                                 Width="400"
+                                 Height="120"
+                                 Background="White"
+                                 BorderBrush="{StaticResource BorderBrush}"
+                                 BorderThickness="2"
+                                 SelectionMode="Extended"
+                                 DisplayMemberPath="DisplayText"
+                                 SelectionChanged="ClientsListBox_SelectionChanged">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="8,4"/>
+                                    <Setter Property="FontSize" Value="13"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                        <TextBlock x:Name="NoClientsText"
+                                   Text="No clients connected"
+                                   Foreground="{StaticResource TextLightBrush}"
+                                   FontStyle="Italic"
+                                   Margin="0,6,0,0"
+                                   HorizontalAlignment="Center"
+                                   Visibility="Collapsed"/>
+                    </StackPanel>
+
+                    <!-- Logs -->
+                    <StackPanel Grid.Row="2" VerticalAlignment="Top" HorizontalAlignment="Center">
+                        <TextBlock Text="Server Logs:" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8" HorizontalAlignment="Center"/>
+                        <ListBox x:Name="LogListBox"
+                                 Width="400"
+                                 Height="150"
+                                 Background="White"
+                                 BorderBrush="{StaticResource BorderBrush}"
+                                 BorderThickness="2"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="4,2"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                    </StackPanel>
+
+                    <!-- Actions -->
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,18,0,0">
+                        <Button x:Name="StartMatchButton"
+                                Content="Start Match"
                                 Style="{StaticResource PrimaryButton}"
                                 Width="140"
                                 Height="42"
                                 Margin="0,0,12,0"
-                                Click="StartMatch_Click"/>
+                                IsEnabled="False"
+                                Click="StartMatchButton_Click"/>
                         <Button Content="Delete Lobby"
                                 Style="{StaticResource SecondaryButton}"
                                 Width="140"
                                 Height="42"
                                 Click="DeleteLobby_Click"/>
                     </StackPanel>
-                </StackPanel>
+                </Grid>
             </Grid>
         </Border>
     </Grid>

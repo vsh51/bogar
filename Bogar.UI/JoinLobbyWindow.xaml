@@ -166,7 +166,11 @@
                     <TextBox x:Name="LobbyIpTextBox" Style="{StaticResource ModernTextBox}" Margin="0,0,0,0"/>
                     <TextBlock x:Name="LobbyIpError" Text="" Foreground="Red" FontSize="11" Margin="4,0,0,2" MinHeight="16" Visibility="Visible"/>
 
-                    <TextBlock Text="Lobby Name" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                    <TextBlock Text="Lobby Port" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"/>
+                    <TextBox x:Name="PortTextBox" Style="{StaticResource ModernTextBox}" Margin="0,0,0,0" Text="8080"/>
+                    <TextBlock x:Name="PortError" Text="" Foreground="Red" FontSize="11" Margin="4,0,0,0" MinHeight="16" Visibility="Visible"/>
+
+                    <TextBlock Text="Lobby Name" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,10,0,5"/>
                     <TextBox x:Name="LobbyNameTextBox" Style="{StaticResource ModernTextBox}" Margin="0,0,0,0"/>
                     <TextBlock x:Name="LobbyNameError" Text="" Foreground="Red" FontSize="11" Margin="4,0,0,0" MinHeight="16" Visibility="Visible"/>
 
@@ -186,10 +190,9 @@
                     <TextBox x:Name="UserNameTextBox" Style="{StaticResource ModernTextBox}" Margin="0,0,0,0"/>
                     <TextBlock x:Name="UserNameError" Text="" Foreground="Red" FontSize="11" Margin="4,0,0,20" MinHeight="16" Visibility="Visible"/>
                     
-                    <Button Content="Join Lobby" Style="{StaticResource PrimaryButton}" Height="45" FontSize="15" Click="JoinLobby_Click"/>
+                    <Button x:Name="JoinLobbyButton" Content="Join Lobby" Style="{StaticResource PrimaryButton}" Height="45" FontSize="15" Click="JoinLobby_Click"/>
                 </StackPanel>
             </Grid>
         </Grid>
     </Border>
 </Window>
-

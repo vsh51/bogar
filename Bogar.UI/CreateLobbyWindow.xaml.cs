@@ -1,17 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-
+using Bogar.BLL.Networking;
 
 namespace Bogar.UI
 {
@@ -22,7 +11,7 @@ namespace Bogar.UI
             InitializeComponent();
         }
 
-        private void CreateLobby_Click(object sender, RoutedEventArgs e)
+        private async void CreateLobby_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(LobbyNameTextBox.Text))
             {
@@ -34,10 +23,31 @@ namespace Bogar.UI
                 LobbyNameError.Text = "";
             }
 
-            // Proceed to admin waiting room
-            var adminWaitingRoom = new AdminWaitingRoomWindow(LobbyNameTextBox.Text, "192.168.1.100");
-            adminWaitingRoom.Show();
-            this.Close();
+            if (!int.TryParse(PortTextBox.Text, out var port) || port < 1024 || port > 65535)
+            {
+                PortError.Text = "Enter a valid port (1024-65535)";
+                return;
+            }
+            else
+            {
+                PortError.Text = "";
+            }
+
+            GameServer? server = null;
+            try
+            {
+                server = new GameServer(port);
+                await server.StartAsync();
+
+                var adminWaitingRoom = new AdminWaitingRoomWindow(server, LobbyNameTextBox.Text);
+                adminWaitingRoom.Show();
+                Close();
+            }
+            catch (Exception ex)
+            {
+                server?.Dispose();
+                MessageBox.Show($"Failed to start server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void CloseWindow_Click(object sender, RoutedEventArgs e)
@@ -46,4 +56,3 @@ namespace Bogar.UI
         }
     }
 }
-

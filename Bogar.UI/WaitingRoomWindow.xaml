@@ -101,27 +101,32 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Margin="0,24,0,0" HorizontalAlignment="Center">
-                            <TextBlock Text="Lobby: ChessRoom42" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,4" HorizontalAlignment="Center"/>
-                            <TextBlock Text="IP: 192.168.1.100" FontSize="15" Foreground="{StaticResource TextLightBrush}" Margin="0,0,0,12" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="LobbyNameText" Text="Lobby: -" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,4" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="LobbyIpText" Text="IP: -" FontSize="15" Foreground="{StaticResource TextLightBrush}" Margin="0,0,0,4" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="PlayerNameText" Text="You: -" FontSize="15" Foreground="{StaticResource TextLightBrush}" Margin="0,0,0,12" HorizontalAlignment="Center"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Width="340">
-                            <TextBlock Text="Lobby Participants:" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,24" HorizontalAlignment="Center" TextAlignment="Center"/>
-                            <StackPanel Margin="0,0,0,36" HorizontalAlignment="Left">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,14" VerticalAlignment="Center">
-                                    <Ellipse Width="26" Height="26" Fill="{StaticResource PrimaryBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="  You: StaticUser" FontSize="17" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,0" VerticalAlignment="Center">
-                                    <Ellipse Width="26" Height="26" Fill="{StaticResource TextLightBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="  Opponent: StaticOpponent" FontSize="17" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                                </StackPanel>
-                            </StackPanel>
-                            <TextBlock Text="Waiting for admin to start the match..."
-                                       FontSize="17"
+                        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Width="360">
+                            <TextBlock Text="Status" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,16" HorizontalAlignment="Center" TextAlignment="Center"/>
+                            <ListBox x:Name="StatusListBox"
+                                     Height="220"
+                                     Background="White"
+                                     BorderBrush="{StaticResource BorderBrush}"
+                                     BorderThickness="2"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="Padding" Value="6,3"/>
+                                        <Setter Property="FontSize" Value="13"/>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                            </ListBox>
+                            <TextBlock x:Name="StatusText"
+                                       Text="Waiting for admin to start the match..."
+                                       FontSize="16"
                                        Foreground="{StaticResource TextLightBrush}"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"
-                                       Margin="0,0,0,0"/>
+                                       Margin="0,12,0,0"/>
                         </StackPanel>
                         <Button Grid.Row="2"
                                 Content="Leave Lobby"
