@@ -101,12 +101,21 @@ namespace Bogar.UI
             NavigateToMainMenu();
         }
 
+        private bool _navigatedToMainMenu;
+
         private void NavigateToMainMenu()
         {
+            if (_navigatedToMainMenu)
+                return;
+
+            _navigatedToMainMenu = true;
             _client.Disconnect();
-            var startWindow = new StartWindow();
-            startWindow.Show();
-            Close();
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var startWindow = new StartWindow();
+                startWindow.Show();
+                Close();
+            }));
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
