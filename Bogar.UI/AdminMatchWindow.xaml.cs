@@ -23,7 +23,7 @@ namespace Bogar.UI
         private readonly DispatcherTimer _timer;
         private DateTime? _matchStart;
 
-        private Board chessBoard = new Board();
+        private Chess.Board chessBoard = new Chess.Board();
         private Position _position = new Position();
 
         public AdminMatchWindow(GameServer server, Guid whiteId, Guid blackId, string whiteName, string blackName)
@@ -73,7 +73,7 @@ namespace Bogar.UI
             });
         }
 
-        private void OnMoveExecuted(ConnectedClient white, ConnectedClient black, Move move, Color color)
+        private void OnMoveExecuted(ConnectedClient white, ConnectedClient black, Move move, BllColor moveColor)
         {
             if (!MatchesPair(white, black))
                 return;
@@ -95,7 +95,7 @@ namespace Bogar.UI
             });
         }
 
-        private void OnGameEnded(ConnectedClient white, ConnectedClient black, Color? winner)
+        private void OnGameEnded(ConnectedClient white, ConnectedClient black, BllColor? winner)
         {
             if (!MatchesPair(white, black))
                 return;
@@ -106,8 +106,8 @@ namespace Bogar.UI
                 _matchStart = null;
                 GameTimerText.Text = winner switch
                 {
-                    Color.White => $"{_whiteName} wins",
-                    Color.Black => $"{_blackName} wins",
+                    BllColor.White => $"{_whiteName} wins",
+                    BllColor.Black => $"{_blackName} wins",
                     _ => "Draw"
                 };
             });
@@ -116,7 +116,7 @@ namespace Bogar.UI
         private void ResetBoard()
         {
             _position = new Position();
-            chessBoard = new Board();
+            chessBoard = new Chess.Board();
             TurnInfoText.Text = "0";
             GameTimerText.Text = "00:00";
             RenderBoard();
@@ -176,7 +176,7 @@ namespace Bogar.UI
 
         private void SyncBoardWithPosition()
         {
-            chessBoard = new Board();
+            chessBoard = new Chess.Board();
             var boardState = _position.GetBoard();
 
             for (BllSquare sq = BllSquare.A1; sq < BllSquare.SQ_COUNT; sq++)
