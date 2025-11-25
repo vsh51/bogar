@@ -10,7 +10,6 @@
         Width="480"
         MinHeight="360"
         MinWidth="420"
-        WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"

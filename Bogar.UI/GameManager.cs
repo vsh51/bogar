@@ -42,10 +42,12 @@ namespace Bogar.UI
                 if (!_isGameRunning)
                     return;
 
-                var elapsed = DateTime.Now - _moveStartTime;
-                TimerTick?.Invoke(elapsed);
+                var moveElapsed = DateTime.Now - _moveStartTime;
+                var gameElapsed = DateTime.Now - _gameStartTime;
 
-                if (_isMoveInProgress && elapsed.TotalSeconds > MoveTimeLimitSeconds)
+                TimerTick?.Invoke(gameElapsed);
+
+                if (_isMoveInProgress && moveElapsed.TotalSeconds > MoveTimeLimitSeconds)
                 {
                     HandleMoveTimeout();
                 }

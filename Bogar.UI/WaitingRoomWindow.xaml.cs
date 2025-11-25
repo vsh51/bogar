@@ -113,8 +113,7 @@ namespace Bogar.UI
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 var startWindow = new StartWindow();
-                startWindow.Show();
-                Close();
+                WindowNavigationHelper.Replace(this, startWindow);
             }));
         }
 

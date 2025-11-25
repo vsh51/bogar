@@ -7,7 +7,6 @@
         Title="Bogar Chess" 
         Height="700" 
         Width="900"
-        WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"

@@ -15,6 +15,7 @@ public sealed class GameServer : IDisposable
 {
     private readonly TcpListener _listener;
     private readonly ConcurrentDictionary<Guid, ConnectedClient> _clients = new();
+    private readonly ConcurrentDictionary<(Guid WhiteId, Guid BlackId), MatchController> _matchControllers = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly object _inGameLock = new();
     private readonly HashSet<Guid> _clientsInGame = new();
@@ -67,6 +68,12 @@ public sealed class GameServer : IDisposable
             catch { }
         }
         _clients.Clear();
+
+        foreach (var controller in _matchControllers.Values)
+        {
+            try { controller.Dispose(); } catch { }
+        }
+        _matchControllers.Clear();
 
         lock (_inGameLock)
         {
@@ -126,11 +133,15 @@ public sealed class GameServer : IDisposable
 
         LogMessage?.Invoke($"Starting match {white.Nickname} vs {black.Nickname}");
 
+        var matchKey = (whiteId, blackId);
+        var controller = new MatchController();
+        _matchControllers[matchKey] = controller;
+
         _ = Task.Run(async () =>
         {
             try
             {
-                await RunGameAsync(white, black, _cancellationTokenSource.Token);
+                await RunGameAsync(white, black, controller, _cancellationTokenSource.Token);
             }
             catch (Exception ex)
             {
@@ -138,6 +149,9 @@ public sealed class GameServer : IDisposable
             }
             finally
             {
+                _matchControllers.TryRemove(matchKey, out var existingController);
+                existingController?.Dispose();
+
                 lock (_inGameLock)
                 {
                     _clientsInGame.Remove(whiteId);
@@ -147,6 +161,31 @@ public sealed class GameServer : IDisposable
         });
 
         return true;
+    }
+
+    public bool TryPauseMatch(Guid whiteId, Guid blackId)
+    {
+        if (_matchControllers.TryGetValue((whiteId, blackId), out var controller))
+        {
+            return controller.TryPause();
+        }
+
+        return false;
+    }
+
+    public bool TryResumeMatch(Guid whiteId, Guid blackId)
+    {
+        if (_matchControllers.TryGetValue((whiteId, blackId), out var controller))
+        {
+            return controller.TryResume();
+        }
+
+        return false;
+    }
+
+    public bool IsMatchPaused(Guid whiteId, Guid blackId)
+    {
+        return _matchControllers.TryGetValue((whiteId, blackId), out var controller) && controller.IsPaused;
     }
 
     private async Task AcceptClientsAsync()
@@ -288,6 +327,7 @@ public sealed class GameServer : IDisposable
 
     private async Task RunGameAsync(
         ConnectedClient white, ConnectedClient black,
+        MatchController controller,
         CancellationToken cancellationToken)
     {
         try
@@ -308,6 +348,8 @@ public sealed class GameServer : IDisposable
 
             while (!game.IsGameOver() && !cancellationToken.IsCancellationRequested)
             {
+                controller.WaitUntilResumed(cancellationToken);
+
                 try
                 {
                     var moveColor = game.GetCurrentTurn();
@@ -378,6 +420,43 @@ public sealed class GameServer : IDisposable
     {
         Stop();
         _cancellationTokenSource.Dispose();
+    }
+}
+
+internal sealed class MatchController : IDisposable
+{
+    private readonly ManualResetEventSlim _resumeEvent = new(initialState: true);
+
+    public bool IsPaused { get; private set; }
+
+    public void WaitUntilResumed(CancellationToken cancellationToken)
+    {
+        _resumeEvent.Wait(cancellationToken);
+    }
+
+    public bool TryPause()
+    {
+        if (IsPaused)
+            return false;
+
+        IsPaused = true;
+        _resumeEvent.Reset();
+        return true;
+    }
+
+    public bool TryResume()
+    {
+        if (!IsPaused)
+            return false;
+
+        IsPaused = false;
+        _resumeEvent.Set();
+        return true;
+    }
+
+    public void Dispose()
+    {
+        try { _resumeEvent.Dispose(); } catch { }
     }
 }
 

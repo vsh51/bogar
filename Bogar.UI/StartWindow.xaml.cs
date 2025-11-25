@@ -71,24 +71,21 @@ namespace Bogar.UI
 
         private void StartLocalGameButton_Click(object sender, RoutedEventArgs e)
         {
-            var mainWindow = new MainWindow(whiteBotPath, blackBotPath);
-            mainWindow.Show();
-            this.Close();
+            var matchWindow = new MatchWindow(whiteBotPath, blackBotPath);
+            WindowNavigationHelper.Replace(this, matchWindow);
         }
 
         private void HostTournamentButton_Click(object sender, RoutedEventArgs e)
         {
             var createLobbyWindow = new CreateLobbyWindow();
-            createLobbyWindow.Show();
-            this.Close();
+            WindowNavigationHelper.Replace(this, createLobbyWindow);
         }
 
 
         private void JoinLobbyButton_Click(object sender, RoutedEventArgs e)
         {
             var joinLobbyWindow = new JoinLobbyWindow();
-            joinLobbyWindow.Show();
-            this.Close();
+            WindowNavigationHelper.Replace(this, joinLobbyWindow);
         }
     }
 }

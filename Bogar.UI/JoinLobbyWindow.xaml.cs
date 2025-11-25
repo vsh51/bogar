@@ -49,8 +49,7 @@ namespace Bogar.UI
                         LobbyIpTextBox.Text.Trim(),
                         port,
                         UserNameTextBox.Text.Trim());
-                    waitingRoom.Show();
-                    Close();
+                    WindowNavigationHelper.Replace(this, waitingRoom);
                 }
                 else
                 {
@@ -127,8 +126,7 @@ namespace Bogar.UI
         private void CloseWindow_Click(object sender, RoutedEventArgs e)
         {
             var startWindow = new StartWindow();
-            startWindow.Show();
-            Close();
+            WindowNavigationHelper.Replace(this, startWindow);
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

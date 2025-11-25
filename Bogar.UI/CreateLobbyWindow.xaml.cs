@@ -41,8 +41,7 @@ namespace Bogar.UI
                 await server.StartAsync();
 
                 var adminWaitingRoom = new AdminWaitingRoomWindow(server, LobbyNameTextBox.Text);
-                adminWaitingRoom.Show();
-                Close();
+                WindowNavigationHelper.Replace(this, adminWaitingRoom);
             }
             catch (Exception ex)
             {

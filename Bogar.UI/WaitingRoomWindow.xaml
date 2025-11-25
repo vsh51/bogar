@@ -6,7 +6,6 @@
         Width="820"
         MinHeight="560"
         MinWidth="720"
-        WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
