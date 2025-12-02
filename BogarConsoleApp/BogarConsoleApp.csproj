@@ -12,4 +12,10 @@
     <PackageReference Include="System.Data.SQLite" Version="2.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="BogarConsoleApp.Tests\**\*.cs" />
+    <EmbeddedResource Remove="BogarConsoleApp.Tests\**\*" />
+    <None Remove="BogarConsoleApp.Tests\**\*" />
+  </ItemGroup>
+
 </Project>
