@@ -403,3 +403,6 @@ FodyWeavers.xsd
 
 # Databases
 *.db
+
+# Rider
+.idea

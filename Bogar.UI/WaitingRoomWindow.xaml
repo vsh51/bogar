@@ -6,7 +6,6 @@
         Width="820"
         MinHeight="560"
         MinWidth="720"
-        WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -74,6 +73,24 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
     <Grid MouseLeftButtonDown="Window_MouseLeftButtonDown">
         <Border Background="{StaticResource CardBackground}" CornerRadius="10" Padding="0" Margin="48">
@@ -88,9 +105,23 @@
                 <!-- Header -->
                 <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" CornerRadius="10,10,0,0">
                     <Grid Height="50">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="120"/>
+                        </Grid.ColumnDefinitions>
                         <StackPanel Orientation="Horizontal" Margin="20,0,20,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Button x:Name="BackButton"
+                                Content="&lt;-"
+                                Style="{StaticResource WindowControlButton}"
+                                Margin="0,0,12,0"
+                                Click="BackButton_Click"/>
                             <TextBlock Text="♕" FontSize="22" Foreground="White" VerticalAlignment="Center" Margin="0,0,12,0"/>
                             <TextBlock Text="WAITING ROOM" FontSize="14" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="1">
+                            <Button Content="—" Style="{StaticResource WindowControlButton}" Margin="0,0,8,0" Click="Minimize_Click"/>
+                            <Button Content="□" Style="{StaticResource WindowControlButton}" Margin="0,0,8,0" Click="Maximize_Click"/>
+                            <Button Content="✕" Style="{StaticResource WindowControlButton}" Click="Close_Click"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -108,7 +139,7 @@
                             <TextBlock x:Name="PlayerNameText" Text="You: -" FontSize="15" Foreground="{StaticResource TextLightBrush}" Margin="0,0,0,12" HorizontalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Width="360">
-                            <TextBlock Text="Status" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,16" HorizontalAlignment="Center" TextAlignment="Center"/>
+                            <TextBlock Text="Status:" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,16" HorizontalAlignment="Center" TextAlignment="Center"/>
                             <ListBox x:Name="StatusListBox"
                                      Height="220"
                                      Background="White"
@@ -145,3 +176,4 @@
         </Border>
     </Grid>
 </Window>
+

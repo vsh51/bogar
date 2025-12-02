@@ -41,19 +41,13 @@ namespace Bogar.UI
                 await server.StartAsync();
 
                 var adminWaitingRoom = new AdminWaitingRoomWindow(server, LobbyNameTextBox.Text);
-                adminWaitingRoom.Show();
-                Close();
+                WindowNavigationHelper.Replace(this, adminWaitingRoom);
             }
             catch (Exception ex)
             {
                 server?.Dispose();
                 MessageBox.Show($"Failed to start server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
-
-        private void CloseWindow_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -63,5 +57,29 @@ namespace Bogar.UI
                 DragMove();
             }
         }
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
+        }
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
+        }
+
+
     }
 }

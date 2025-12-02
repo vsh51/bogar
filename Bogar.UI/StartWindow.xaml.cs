@@ -22,16 +22,6 @@ namespace Bogar.UI
             }
         }
 
-        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
-        {
-            WindowState = WindowState.Minimized;
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
         private void BrowseWhiteBotButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new OpenFileDialog
@@ -71,24 +61,37 @@ namespace Bogar.UI
 
         private void StartLocalGameButton_Click(object sender, RoutedEventArgs e)
         {
-            var mainWindow = new MainWindow(whiteBotPath, blackBotPath);
-            mainWindow.Show();
-            this.Close();
+            var matchWindow = new MatchWindow(whiteBotPath, blackBotPath);
+            WindowNavigationHelper.Replace(this, matchWindow);
         }
 
         private void HostTournamentButton_Click(object sender, RoutedEventArgs e)
         {
             var createLobbyWindow = new CreateLobbyWindow();
-            createLobbyWindow.Show();
-            this.Close();
+            WindowNavigationHelper.Replace(this, createLobbyWindow);
         }
 
 
         private void JoinLobbyButton_Click(object sender, RoutedEventArgs e)
         {
             var joinLobbyWindow = new JoinLobbyWindow();
-            joinLobbyWindow.Show();
+            WindowNavigationHelper.Replace(this, joinLobbyWindow);
+        }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
             this.Close();
         }
+
     }
 }

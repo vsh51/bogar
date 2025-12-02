@@ -14,6 +14,8 @@ namespace Bogar.UI
     public partial class AdminWaitingRoomWindow : Window
     {
         private readonly GameServer _server;
+        private readonly string _lobbyName;
+        private readonly string _hostIp;
         private readonly ObservableCollection<string> _logMessages = new();
         private readonly ObservableCollection<ClientListItem> _clients = new();
         private readonly DispatcherTimer _refreshTimer;
@@ -25,8 +27,11 @@ namespace Bogar.UI
             InitializeComponent();
 
             _server = server;
-            LobbyNameText.Text = $"Lobby: {lobbyName}";
-            LobbyIpText.Text = $"IP: {GetLocalIPAddress()}";
+            _lobbyName = lobbyName;
+            _hostIp = GetLocalIPAddress();
+
+            LobbyNameText.Text = $"Lobby: {_lobbyName}";
+            LobbyIpText.Text = $"IP: {_hostIp}";
             LobbyPortText.Text = $"Port: {_server.Port}";
 
             LogListBox.ItemsSource = _logMessages;
@@ -160,7 +165,15 @@ namespace Bogar.UI
                 _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Match queued: {client1.Nickname} vs {client2.Nickname}");
                 ClientsListBox.UnselectAll();
                 _matchWindow?.Close();
-                _matchWindow = new AdminMatchWindow(_server, client1.Id, client2.Id, client1.Nickname, client2.Nickname);
+                _matchWindow = new AdminMatchWindow(
+                    _server,
+                    client1.Id,
+                    client2.Id,
+                    client1.Nickname,
+                    client2.Nickname,
+                    _lobbyName,
+                    _hostIp);
+                WindowNavigationHelper.AlignTo(this, _matchWindow, offsetX: 32, offsetY: 32);
                 _matchWindow.Show();
             }
             else if (!string.IsNullOrEmpty(error))
@@ -173,9 +186,8 @@ namespace Bogar.UI
 
         private void DeleteLobby_Click(object sender, RoutedEventArgs e)
         {
-            Close();
             var startWindow = new StartWindow();
-            startWindow.Show();
+            WindowNavigationHelper.Replace(this, startWindow);
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -228,5 +240,28 @@ namespace Bogar.UI
 
             public string DisplayText => $"{Client.Nickname}{(IsInGame ? " (In Game)" : " (Idle)")}";
         }
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
+        }
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            var createLobbyWindow = new CreateLobbyWindow();
+            createLobbyWindow.Show();
+            this.Close();
+        }
+
     }
 }
