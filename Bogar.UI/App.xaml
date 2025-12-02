@@ -69,6 +69,24 @@
             </Setter>
         </Style>
 
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="FileTextBox" TargetType="{x:Type TextBox}">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="{StaticResource TextLightBrush}"/>
@@ -90,7 +108,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
+
         <Style x:Key="BrowseButtonCompact" TargetType="{x:Type Button}">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -127,6 +145,5 @@
             </Style.Triggers>
         </Style>
 
-        
     </Application.Resources>
 </Application>

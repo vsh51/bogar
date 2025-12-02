@@ -58,7 +58,6 @@
             <Setter Property="BorderThickness" Value="2"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="Padding" Value="0"/>
-            <!-- Only vertical centering, no extra space -->
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -79,7 +78,23 @@
             </Style.Triggers>
         </Style>
 
-
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
     </Window.Resources>
     <Grid MouseLeftButtonDown="Window_MouseLeftButtonDown">
@@ -94,9 +109,24 @@
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" CornerRadius="10,10,0,0">
                     <Grid Height="50">
-                        <StackPanel Orientation="Horizontal" Margin="20,0,20,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="120"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Margin="20,0,20,0" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="0">
+                            <Button x:Name="BackButton"
+                                Content="&lt;-"
+                                Style="{StaticResource WindowControlButton}"
+                                Margin="0,0,12,0"
+                                Click="BackButton_Click"/>  
                             <TextBlock Text="♕" FontSize="22" Foreground="White" VerticalAlignment="Center" Margin="0,0,12,0"/>
                             <TextBlock Text="ADMIN WAITING ROOM" FontSize="14" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="1">
+                            <Button Content="—" Style="{StaticResource WindowControlButton}" Margin="0,0,8,0" Click="Minimize_Click"/>
+                            <Button Content="□" Style="{StaticResource WindowControlButton}" Margin="0,0,8,0" Click="Maximize_Click"/>
+                            <Button Content="✕" Style="{StaticResource WindowControlButton}" Click="Close_Click"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -183,3 +213,4 @@
         </Border>
     </Grid>
 </Window>
+

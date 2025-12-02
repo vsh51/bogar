@@ -22,16 +22,6 @@ namespace Bogar.UI
             }
         }
 
-        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
-        {
-            WindowState = WindowState.Minimized;
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
         private void BrowseWhiteBotButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new OpenFileDialog
@@ -87,5 +77,21 @@ namespace Bogar.UI
             var joinLobbyWindow = new JoinLobbyWindow();
             WindowNavigationHelper.Replace(this, joinLobbyWindow);
         }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
     }
 }

@@ -240,5 +240,28 @@ namespace Bogar.UI
 
             public string DisplayText => $"{Client.Nickname}{(IsInGame ? " (In Game)" : " (Idle)")}";
         }
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
+        }
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            var createLobbyWindow = new CreateLobbyWindow();
+            createLobbyWindow.Show();
+            this.Close();
+        }
+
     }
 }

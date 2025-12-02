@@ -20,6 +20,7 @@ namespace Bogar.UI
     public partial class AdminMatchWindow : Window
     {
         private readonly GameServer _server;
+        private readonly string _lobbyName;
         private Guid _whiteId;
         private Guid _blackId;
         private string _whiteName = string.Empty;
@@ -54,6 +55,7 @@ namespace Bogar.UI
             InitializeComponent();
 
             _server = server;
+            _lobbyName = lobbyName;
 
             LeftMovesList.ItemsSource = _leftMoves;
             RightMovesList.ItemsSource = _rightMoves;
@@ -529,10 +531,6 @@ namespace Bogar.UI
             }
         }
 
-        private void ViewStatistics_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
         private void LeaveLobby_Click(object sender, RoutedEventArgs e)
         {
             Close();
@@ -570,6 +568,35 @@ namespace Bogar.UI
                 MessageBox.Show("Unable to resume the current match. It may have already finished.",
                     "Resume failed", MessageBoxButton.OK, MessageBoxImage.Information);
             }
+        }
+        private void ViewStatistics_Click(object sender, RoutedEventArgs e)
+        {
+            var statisticsWindow = new AdminStatisticsWindow();
+            statisticsWindow.Show();
+        }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            var waitingRoomWindow = new AdminWaitingRoomWindow(_server, _lobbyName);
+            waitingRoomWindow.Show();
+            this.Close();
         }
 
         protected override void OnClosed(EventArgs e)

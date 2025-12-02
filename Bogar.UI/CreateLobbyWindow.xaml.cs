@@ -50,11 +50,6 @@ namespace Bogar.UI
             }
         }
 
-        private void CloseWindow_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
-
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
@@ -62,5 +57,29 @@ namespace Bogar.UI
                 DragMove();
             }
         }
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
+        }
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
+        }
+
+
     }
 }

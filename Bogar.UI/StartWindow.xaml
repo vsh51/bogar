@@ -93,6 +93,23 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Border Background="White" CornerRadius="10">
         <Border.Effect>
@@ -105,51 +122,18 @@
             </Grid.RowDefinitions>
             <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" CornerRadius="10,10,0,0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                 <Grid Height="50">
-                    <StackPanel Orientation="Horizontal" Margin="20,0,20,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="120"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" Margin="20,0,20,0" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="0">
                         <TextBlock Text="♕" FontSize="22" Foreground="White" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <TextBlock Text="BOGAR CHESS" FontSize="14" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="─" Width="45" Height="50" Background="Transparent" Foreground="White" BorderThickness="0" FontSize="16" Click="MinimizeButton_Click" Cursor="Hand">
-                            <Button.Style>
-                                <Style TargetType="{x:Type Button}">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="{x:Type Button}">
-                                                <Border Background="{TemplateBinding Background}">
-                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Button Content="✕" Width="45" Height="50" Background="Transparent" Foreground="White" BorderThickness="0" FontSize="14" Click="CloseButton_Click" Cursor="Hand">
-                            <Button.Style>
-                                <Style TargetType="{x:Type Button}">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="{x:Type Button}">
-                                                <Border Background="{TemplateBinding Background}" CornerRadius="0,10,0,0">
-                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#E74C3C"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="1">
+                        <Button Content="—" Style="{StaticResource WindowControlButton}" Margin="0,0,8,0" Click="Minimize_Click"/>
+                        <Button Content="□" Style="{StaticResource WindowControlButton}" Margin="0,0,8,0" Click="Maximize_Click"/>
+                        <Button Content="✕" Style="{StaticResource WindowControlButton}" Click="Close_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -172,10 +156,10 @@
                     <Border Grid.Column="0" Background="{StaticResource BackgroundLightBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2" CornerRadius="8" Padding="28,28,28,28">
                         <StackPanel>
                             <TextBlock Text="LOCAL MATCH" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"/>
-                            <TextBlock Text="White Bot" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
+                            <TextBlock Text="White Bot:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
                             <TextBox x:Name="WhiteBotPathTextBox" Style="{StaticResource ModernTextBox}" Text="No bot selected" Margin="0,0,0,10"/>
                             <Button Content="Browse White Bot" Style="{StaticResource SecondaryButton}" Click="BrowseWhiteBotButton_Click" HorizontalAlignment="Stretch" Margin="0,0,0,20"/>
-                            <TextBlock Text="Black Bot" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
+                            <TextBlock Text="Black Bot:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
                             <TextBox x:Name="BlackBotPathTextBox" Style="{StaticResource ModernTextBox}" Text="No bot selected" Margin="0,0,0,10"/>
                             <Button Content="Browse Black Bot" Style="{StaticResource SecondaryButton}" Click="BrowseBlackBotButton_Click" HorizontalAlignment="Stretch" Margin="0,0,0,25"/>
                             <Button x:Name="StartLocalGameButton" Content="▶ Start Local Match" Style="{StaticResource PrimaryButton}" Click="StartLocalGameButton_Click" HorizontalAlignment="Stretch" IsEnabled="False" Height="45" FontSize="15"/>
@@ -203,3 +187,4 @@
         </Grid>
     </Border>
 </Window>
+

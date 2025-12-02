@@ -445,6 +445,30 @@ namespace Bogar.UI
                 DragMove();
             }
         }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
+        }
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
+        }
+
     }
 
     public class BoardCellInfo

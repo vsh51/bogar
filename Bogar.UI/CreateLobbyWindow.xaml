@@ -69,6 +69,23 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid MouseLeftButtonDown="Window_MouseLeftButtonDown">
         <Border Background="White" CornerRadius="10" Margin="20">
@@ -80,46 +97,29 @@
                     <RowDefinition Height="50"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <!-- Header styled like StartWindow -->
                 <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" CornerRadius="10,10,0,0">
                     <Grid Height="50">
-                        <StackPanel Orientation="Horizontal" Margin="20,0,20,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="120"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="20,0,20,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Button x:Name="BackButton"
+                                Content="&lt;-"
+                                Style="{StaticResource WindowControlButton}"
+                                Margin="0,0,12,0"
+                                Click="BackButton_Click"/>
                             <TextBlock Text="♕" FontSize="22" Foreground="White" VerticalAlignment="Center" Margin="0,0,12,0"/>
                             <TextBlock Text="CREATE LOBBY" FontSize="14" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <Button Content="✕"
-                                Width="45"
-                                Height="50"
-                                Background="Transparent"
-                                Foreground="White"
-                                BorderThickness="0"
-                                FontSize="14"
-                                Click="CloseWindow_Click"
-                                Cursor="Hand"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Top">
-                            <Button.Style>
-                                <Style TargetType="{x:Type Button}">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="{x:Type Button}">
-                                                <Border Background="{TemplateBinding Background}" CornerRadius="0,10,0,0">
-                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#E74C3C"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Content="—" Style="{StaticResource WindowControlButton}" Margin="0,0,8,0" Click="Minimize_Click"/>
+                            <Button Content="□" Style="{StaticResource WindowControlButton}" Margin="0,0,8,0" Click="Maximize_Click"/>
+                            <Button Content="✕" Style="{StaticResource WindowControlButton}" Click="Close_Click"/>
+                        </StackPanel>
                     </Grid>
+
                 </Border>
-                <!-- Main content -->
                 <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,24,0,0">
                     <TextBlock Text="Lobby Name:" FontSize="15" Foreground="{StaticResource TextBrush}" Margin="0,0,0,6"/>
                     <TextBox x:Name="LobbyNameTextBox" Width="220" Style="{StaticResource ModernTextBox}" Margin="0,0,0,2"/>
@@ -140,3 +140,4 @@
         </Border>
     </Grid>
 </Window>
+

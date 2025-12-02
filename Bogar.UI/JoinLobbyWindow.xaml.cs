@@ -123,18 +123,36 @@ namespace Bogar.UI
             return valid;
         }
 
-        private void CloseWindow_Click(object sender, RoutedEventArgs e)
-        {
-            var startWindow = new StartWindow();
-            WindowNavigationHelper.Replace(this, startWindow);
-        }
-
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 DragMove();
             }
+        }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
         }
     }
 }

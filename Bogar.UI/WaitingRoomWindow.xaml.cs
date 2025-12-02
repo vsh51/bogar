@@ -148,5 +148,29 @@ namespace Bogar.UI
             _client.Disconnected -= OnDisconnected;
             _client.Dispose();
         }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            var startWindow = new StartWindow();
+            startWindow.Show();
+            this.Close();
+        }
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            var joinLobbyWindow = new JoinLobbyWindow();
+            joinLobbyWindow.Show();
+            this.Close();
+        }
+
     }
 }
