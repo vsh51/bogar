@@ -1,9 +1,12 @@
 using Bogar.BLL.Core;
+using Bogar.BLL.Statistics;
+using Bogar.DAL;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Linq;
 using GameInstance = Bogar.BLL.Game.Game;
 
 namespace Bogar.BLL.Networking;
@@ -27,6 +30,7 @@ public sealed class GameServer : IDisposable
     public event Action<ConnectedClient, ConnectedClient>? GameStarted;
     public event Action<ConnectedClient, ConnectedClient, Color?>? GameEnded;
     public event Action<ConnectedClient, ConnectedClient, Move, Color>? MoveExecuted;
+    public event Action<MatchResult>? MatchCompleted;
 
     public int Port { get; }
 
@@ -188,6 +192,37 @@ public sealed class GameServer : IDisposable
         return _matchControllers.TryGetValue((whiteId, blackId), out var controller) && controller.IsPaused;
     }
 
+    public bool TryKickClient(Guid clientId, out string? error)
+    {
+        error = null;
+
+        if (!_clients.TryRemove(clientId, out var client))
+        {
+            error = "Player is no longer connected.";
+            return false;
+        }
+
+        lock (_inGameLock)
+        {
+            _clientsInGame.Remove(clientId);
+        }
+
+        try
+        {
+            client.Dispose();
+        }
+        catch { }
+
+        try
+        {
+            ClientDisconnected?.Invoke(client);
+        }
+        catch { }
+
+        LogMessage?.Invoke($"Client kicked: {client.Nickname}");
+        return true;
+    }
+
     private async Task AcceptClientsAsync()
     {
         while (_isRunning && !_cancellationTokenSource.Token.IsCancellationRequested)
@@ -330,6 +365,7 @@ public sealed class GameServer : IDisposable
         MatchController controller,
         CancellationToken cancellationToken)
     {
+        var matchStart = DateTimeOffset.UtcNow;
         try
         {
             await NotifyMatchStartingAsync(white, black, cancellationToken);
@@ -392,6 +428,28 @@ public sealed class GameServer : IDisposable
             await black.Player.SendGameEndAsync(result, cancellationToken);
 
             GameEnded?.Invoke(white, black, winner);
+            var matchFinish = DateTimeOffset.UtcNow;
+            var (whiteScore, blackScore) = game.GetScoreBreakdown();
+            var moves = game.Moves
+                .Where(m => m.Piece != Piece.NoPiece)
+                .Select(FormatMove)
+                .ToArray();
+
+            MatchCompleted?.Invoke(new MatchResult
+            {
+                WhiteClientId = white.Id,
+                WhiteNickname = white.Nickname,
+                BlackClientId = black.Id,
+                BlackNickname = black.Nickname,
+                Winner = winner,
+                Status = MatchStatus.Completed,
+                Moves = moves,
+                WhiteScore = whiteScore,
+                BlackScore = blackScore,
+                StartedAt = matchStart,
+                FinishedAt = matchFinish,
+                IsAutoWin = false
+            });
             LogMessage?.Invoke($"Game finished: {result}");
         }
         catch (Exception ex)
@@ -406,6 +464,22 @@ public sealed class GameServer : IDisposable
     {
         await target.Player.SendMatchPrepareAsync(
             opponent.Nickname, cancellationToken);
+    }
+
+    private static string FormatMove(Move move)
+    {
+        var pieceChar = PieceExtensions.TypeOfPiece(move.Piece) switch
+        {
+            PieceType.Pawn => 'P',
+            PieceType.Knight => 'N',
+            PieceType.Bishop => 'B',
+            PieceType.Rook => 'R',
+            PieceType.Queen => 'Q',
+            PieceType.King => 'K',
+            _ => '?'
+        };
+
+        return $"{pieceChar}{SquareExtensions.ToAlgebraic(move.Square).ToUpperInvariant()}";
     }
 
     private static async Task SendErrorAsync(

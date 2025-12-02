@@ -2,12 +2,14 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Bogar.BLL.Networking;
 using Bogar.BLL.Core;
+using Bogar.BLL.Networking;
+using Bogar.BLL.Statistics;
 
 namespace Bogar.UI
 {
@@ -19,16 +21,25 @@ namespace Bogar.UI
         private readonly ObservableCollection<string> _logMessages = new();
         private readonly ObservableCollection<ClientListItem> _clients = new();
         private readonly DispatcherTimer _refreshTimer;
+        private readonly LobbyStatisticsService _statisticsService;
         private AdminMatchWindow? _matchWindow;
         private bool _isRefreshingClients;
+
+        public static readonly RoutedUICommand KickPlayerCommand = new RoutedUICommand(
+            "Kick Player",
+            "KickPlayer",
+            typeof(AdminWaitingRoomWindow));
 
         public AdminWaitingRoomWindow(GameServer server, string lobbyName)
         {
             InitializeComponent();
 
+            CommandBindings.Add(new CommandBinding(KickPlayerCommand, OnKickPlayerCommandExecuted, CanExecuteKickPlayerCommand));
+
             _server = server;
             _lobbyName = lobbyName;
             _hostIp = GetLocalIPAddress();
+            _statisticsService = new LobbyStatisticsService(lobbyName);
 
             LobbyNameText.Text = $"Lobby: {_lobbyName}";
             LobbyIpText.Text = $"IP: {_hostIp}";
@@ -42,6 +53,7 @@ namespace Bogar.UI
             _server.ClientDisconnected += OnClientChanged;
             _server.GameStarted += OnGameStarted;
             _server.GameEnded += OnGameEnded;
+            _server.MatchCompleted += OnMatchCompleted;
 
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
             _refreshTimer.Tick += (s, e) => RefreshClients();
@@ -137,6 +149,19 @@ namespace Bogar.UI
             UpdateStartMatchButtonState();
         }
 
+        private void OnKickPlayerCommandExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Parameter is ClientListItem item)
+            {
+                TryKickClient(item.Client.Id, item.Client.Nickname);
+            }
+        }
+
+        private void CanExecuteKickPlayerCommand(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = e.Parameter is ClientListItem;
+        }
+
         private void UpdateStartMatchButtonState()
         {
             var selectable = ClientsListBox.SelectedItems
@@ -172,7 +197,8 @@ namespace Bogar.UI
                     client1.Nickname,
                     client2.Nickname,
                     _lobbyName,
-                    _hostIp);
+                    _hostIp,
+                    _statisticsService);
                 WindowNavigationHelper.AlignTo(this, _matchWindow, offsetX: 32, offsetY: 32);
                 _matchWindow.Show();
             }
@@ -182,6 +208,36 @@ namespace Bogar.UI
             }
 
             RefreshClients();
+        }
+
+        private void TryKickClient(Guid clientId, string nickname)
+        {
+            var confirm = MessageBox.Show(
+                $"Kick player '{nickname}'?",
+                "Kick player",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes)
+                return;
+
+            if (_server.TryKickClient(clientId, out var error))
+            {
+                _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Player kicked: {nickname}");
+                RefreshClients();
+            }
+            else if (!string.IsNullOrEmpty(error))
+            {
+                MessageBox.Show(error, "Kick player", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show(
+                    "Unable to kick the selected player.",
+                    "Kick player",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
         }
 
         private void DeleteLobby_Click(object sender, RoutedEventArgs e)
@@ -222,9 +278,31 @@ namespace Bogar.UI
             _server.ClientDisconnected -= OnClientChanged;
             _server.GameStarted -= OnGameStarted;
             _server.GameEnded -= OnGameEnded;
+            _server.MatchCompleted -= OnMatchCompleted;
 
             _matchWindow?.Close();
             _server.Dispose();
+            _statisticsService.Dispose();
+        }
+
+        private void OnMatchCompleted(MatchResult result)
+        {
+            _ = PersistMatchAsync(result);
+        }
+
+        private async Task PersistMatchAsync(MatchResult result)
+        {
+            try
+            {
+                await _statisticsService.RecordMatchAsync(result);
+            }
+            catch (Exception ex)
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Failed to store match: {ex.Message}");
+                });
+            }
         }
 
         private sealed class ClientListItem

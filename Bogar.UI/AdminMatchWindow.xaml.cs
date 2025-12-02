@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Bogar.BLL.Core;
 using Bogar.BLL.Networking;
+using Bogar.BLL.Statistics;
 using Bogar.UI.Chess;
 using BllPiece = Bogar.BLL.Core.Piece;
 using BllPieceType = Bogar.BLL.Core.PieceType;
@@ -21,6 +22,7 @@ namespace Bogar.UI
     {
         private readonly GameServer _server;
         private readonly string _lobbyName;
+        private readonly LobbyStatisticsService _statisticsService;
         private Guid _whiteId;
         private Guid _blackId;
         private string _whiteName = string.Empty;
@@ -43,6 +45,11 @@ namespace Bogar.UI
         private Chess.Board chessBoard = new Chess.Board();
         private Position _position = new Position();
 
+        public static readonly RoutedUICommand KickPlayerCommand = new RoutedUICommand(
+            "Kick Player",
+            "KickPlayer",
+            typeof(AdminMatchWindow));
+
         public AdminMatchWindow(
             GameServer server,
             Guid whiteId,
@@ -50,12 +57,16 @@ namespace Bogar.UI
             string whiteName,
             string blackName,
             string lobbyName,
-            string hostIp)
+            string hostIp,
+            LobbyStatisticsService statisticsService)
         {
             InitializeComponent();
 
+            CommandBindings.Add(new CommandBinding(KickPlayerCommand, OnKickPlayerCommandExecuted, CanExecuteKickPlayerCommand));
+
             _server = server;
             _lobbyName = lobbyName;
+            _statisticsService = statisticsService;
 
             LeftMovesList.ItemsSource = _leftMoves;
             RightMovesList.ItemsSource = _rightMoves;
@@ -571,8 +582,68 @@ namespace Bogar.UI
         }
         private void ViewStatistics_Click(object sender, RoutedEventArgs e)
         {
-            var statisticsWindow = new AdminStatisticsWindow();
+            var statisticsWindow = new AdminStatisticsWindow(_statisticsService, _lobbyName);
             statisticsWindow.Show();
+        }
+
+        private void KickWhitePlayer_Click(object sender, RoutedEventArgs e)
+        {
+            KickPlayer(_whiteId, _whiteName);
+        }
+
+        private void KickBlackPlayer_Click(object sender, RoutedEventArgs e)
+        {
+            KickPlayer(_blackId, _blackName);
+        }
+
+        private void OnKickPlayerCommandExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Parameter is ClientListItem item)
+            {
+                KickPlayer(item.ClientId, item.Nickname);
+            }
+        }
+
+        private void CanExecuteKickPlayerCommand(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = e.Parameter is ClientListItem;
+        }
+
+        private void KickPlayer(Guid playerId, string playerName)
+        {
+            if (playerId == Guid.Empty)
+                return;
+
+            var confirm = MessageBox.Show(
+                $"Kick player '{playerName}' from the lobby?",
+                "Kick player",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes)
+                return;
+
+            if (_server.TryKickClient(playerId, out var error))
+            {
+                MessageBox.Show(
+                    $"Player '{playerName}' was kicked.",
+                    "Kick player",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                RefreshWaitingPlayers();
+            }
+            else if (!string.IsNullOrEmpty(error))
+            {
+                MessageBox.Show(error, "Kick player", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show(
+                    "Unable to kick the selected player.",
+                    "Kick player",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
         }
 
         private void Minimize_Click(object sender, RoutedEventArgs e)

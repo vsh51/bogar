@@ -12,6 +12,8 @@
     {
         public int Id { get; set; }
 
+        public int LobbyId { get; set; }
+
         public int WhiteBotId { get; set; }
 
         public int BlackBotId { get; set; }
@@ -30,6 +32,7 @@
 
         public MatchStatus Status { get; set; }
 
+        public virtual Lobby Lobby { get; set; }
         public virtual User WhiteBot { get; set; }
         public virtual User BlackBot { get; set; }
         public virtual User Winner { get; set; }

@@ -71,6 +71,7 @@ public class GameDbContextTests : IDisposable
 
         var match = new Match
         {
+            Lobby = lobby,
             WhiteBot = whiteBot,
             BlackBot = blackBot,
             Status = MatchStatus.InProgress,
@@ -105,6 +106,7 @@ public class GameDbContextTests : IDisposable
         var u2 = new User { Username = "P2", BotName = "B2", BotFileHash = "12397d86gv", Lobby = lobby };
         var match = new Match
         {
+            Lobby = lobby,
             WhiteBot = u1,
             BlackBot = u2,
             Status = MatchStatus.InProgress,

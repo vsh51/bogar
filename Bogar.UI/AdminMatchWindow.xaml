@@ -132,7 +132,13 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <TextBlock Text="PLAYER 1" FontSize="30" FontWeight="Bold" Margin="0,0,50,0" Style="{StaticResource HeaderTitle}"/>
-                            <TextBlock x:Name="WhiteBotNameTextBlock" Text="Player" FontSize="15" HorizontalAlignment="Center" Margin="0,0,50,0" Foreground="Black"/>
+                            <TextBlock x:Name="WhiteBotNameTextBlock" Text="Player" FontSize="15" HorizontalAlignment="Center" Margin="0,0,50,0" Foreground="Black">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Kick player" Click="KickWhitePlayer_Click"/>
+                                    </ContextMenu>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <TextBlock x:Name="TurnArrow" Text="→" FontSize="30" FontWeight="ExtraBold" Margin="0,-5,0,-5" HorizontalAlignment="Center" Style="{StaticResource HeaderTitle}"/>
@@ -140,7 +146,13 @@
                         </StackPanel>
                         <StackPanel Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Center">
                             <TextBlock Text="PLAYER 2" FontSize="30" FontWeight="Bold" Margin="50,0,0,0" Style="{StaticResource HeaderTitle}"/>
-                            <TextBlock x:Name="BlackBotNameTextBlock" Text="Player" FontSize="15" HorizontalAlignment="Center" Margin="50,0,0,0" Foreground="Black"/>
+                            <TextBlock x:Name="BlackBotNameTextBlock" Text="Player" FontSize="15" HorizontalAlignment="Center" Margin="50,0,0,0" Foreground="Black">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Kick player" Click="KickBlackPlayer_Click"/>
+                                    </ContextMenu>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -275,6 +287,19 @@
                                  Background="{StaticResource CardBackground}"
                                  SelectionMode="Extended"
                                  SelectionChanged="WaitingPlayersList_SelectionChanged">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu>
+                                                <MenuItem Header="Kick player"
+                                                          Command="{x:Static local:AdminMatchWindow.KickPlayerCommand}"
+                                                          CommandParameter="{Binding}"/>
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Nickname}" FontSize="14" Margin="4,2"/>

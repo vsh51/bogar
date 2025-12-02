@@ -161,6 +161,15 @@
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="Padding" Value="8,4"/>
                                     <Setter Property="FontSize" Value="13"/>
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu>
+                                                <MenuItem Header="Kick player"
+                                                          Command="{x:Static local:AdminWaitingRoomWindow.KickPlayerCommand}"
+                                                          CommandParameter="{Binding}"/>
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
                                 </Style>
                             </ListBox.ItemContainerStyle>
                         </ListBox>

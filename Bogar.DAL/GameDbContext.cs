@@ -40,6 +40,12 @@ public class GameDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Match>()
+            .HasOne(m => m.Lobby)
+            .WithMany(l => l.Matches)
+            .HasForeignKey(m => m.LobbyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Match>()
             .Property(m => m.Status)
             .HasConversion<string>();
     }
