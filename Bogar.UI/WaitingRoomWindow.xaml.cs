@@ -161,9 +161,8 @@ namespace Bogar.UI
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            var startWindow = new StartWindow();
-            startWindow.Show();
-            this.Close();
+            _isLeaving = true;
+            NavigateToMainMenu();
         }
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {

@@ -245,6 +245,11 @@ namespace Bogar.UI
 
         private void DeleteLobby_Click(object sender, RoutedEventArgs e)
         {
+            NavigateToStart();
+        }
+
+        public void NavigateToStart()
+        {
             var startWindow = new StartWindow();
             WindowNavigationHelper.Replace(this, startWindow);
         }
@@ -333,9 +338,7 @@ namespace Bogar.UI
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            var startWindow = new StartWindow();
-            startWindow.Show();
-            this.Close();
+            NavigateToStart();
         }
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {

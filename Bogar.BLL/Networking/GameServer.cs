@@ -141,11 +141,14 @@ public sealed class GameServer : IDisposable
         var controller = new MatchController();
         _matchControllers[matchKey] = controller;
 
+        var matchToken = controller.MatchCancellation.Token;
+        var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancellationTokenSource.Token, matchToken);
+
         _ = Task.Run(async () =>
         {
             try
             {
-                await RunGameAsync(white, black, controller, _cancellationTokenSource.Token);
+                await RunGameAsync(white, black, controller, linkedTokenSource.Token);
             }
             catch (Exception ex)
             {
@@ -153,6 +156,7 @@ public sealed class GameServer : IDisposable
             }
             finally
             {
+                linkedTokenSource.Dispose();
                 _matchControllers.TryRemove(matchKey, out var existingController);
                 existingController?.Dispose();
 
@@ -184,6 +188,16 @@ public sealed class GameServer : IDisposable
             return controller.TryResume();
         }
 
+        return false;
+    }
+
+    public bool StopMatch(Guid whiteId, Guid blackId)
+    {
+        if (_matchControllers.TryGetValue((whiteId, blackId), out var controller))
+        {
+            controller.MatchCancellation.Cancel();
+            return true;
+        }
         return false;
     }
 
@@ -500,6 +514,7 @@ public sealed class GameServer : IDisposable
 internal sealed class MatchController : IDisposable
 {
     private readonly ManualResetEventSlim _resumeEvent = new(initialState: true);
+    public CancellationTokenSource MatchCancellation { get; } = new();
 
     public bool IsPaused { get; private set; }
 
@@ -531,6 +546,7 @@ internal sealed class MatchController : IDisposable
     public void Dispose()
     {
         try { _resumeEvent.Dispose(); } catch { }
+        try { MatchCancellation.Dispose(); } catch { }
     }
 }
 

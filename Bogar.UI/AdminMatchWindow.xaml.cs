@@ -492,15 +492,6 @@ namespace Bogar.UI
             };
         }
 
-        private void LeaveMatch_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
-
-        private void StartMatchButton_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
         private void StartNextMatch_Click(object sender, RoutedEventArgs e)
         {
             if (_isMatchRunning)
@@ -549,8 +540,7 @@ namespace Bogar.UI
 
         private void LeaveLobby_Click(object sender, RoutedEventArgs e)
         {
-            var startWindow = new StartWindow();
-            startWindow.Show();
+            _waitingRoomWindow.NavigateToStart();
             this.Close();
         }
 
@@ -665,13 +655,15 @@ namespace Bogar.UI
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            var startWindow = new StartWindow();
-            startWindow.Show();
+            _waitingRoomWindow.NavigateToStart();
             this.Close();
         }
-
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_isMatchRunning)
+            {
+                _server.StopMatch(_whiteId, _blackId);
+            }
             _waitingRoomWindow.Show();
             this.Close();
         }
