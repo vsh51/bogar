@@ -198,9 +198,12 @@ namespace Bogar.UI
                     client2.Nickname,
                     _lobbyName,
                     _hostIp,
-                    _statisticsService);
+                    _statisticsService,
+                    this
+                );
                 WindowNavigationHelper.AlignTo(this, _matchWindow, offsetX: 32, offsetY: 32);
                 _matchWindow.Show();
+                this.Hide();
             }
             else if (!string.IsNullOrEmpty(error))
             {
@@ -343,3 +346,5 @@ namespace Bogar.UI
 
     }
 }
+
+
