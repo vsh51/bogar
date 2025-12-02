@@ -41,7 +41,7 @@ public class Player : IPlayer
                     }
                 } 
 
-                string newMove = process.StandardOutput.ReadLine();
+                string? newMove = process.StandardOutput.ReadLine();
                 string errors = process.StandardError.ReadToEnd();
 
                 process.WaitForExit();

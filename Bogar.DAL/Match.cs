@@ -28,13 +28,13 @@
         public int ScoreWhite { get; set; }
         public int ScoreBlack { get; set; }
 
-        public string Moves { get; set; }
+        public string? Moves { get; set; }
 
         public MatchStatus Status { get; set; }
 
-        public virtual Lobby Lobby { get; set; }
-        public virtual User WhiteBot { get; set; }
-        public virtual User BlackBot { get; set; }
-        public virtual User Winner { get; set; }
+        public virtual Lobby? Lobby { get; set; }
+        public virtual User? WhiteBot { get; set; }
+        public virtual User? BlackBot { get; set; }
+        public virtual User? Winner { get; set; }
     }
 }

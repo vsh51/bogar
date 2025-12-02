@@ -37,7 +37,7 @@ namespace Bogar.BLL.Game
             var playerBlack = new BotPlayer(BlackBotPath);
             var game = new Game(playerWhite, playerBlack);
 
-            Exception gameEndException = null;
+            Exception? gameEndException = null;
             int maxMoves = 32;
 
             _output.WriteLine($"--- Початок гри ---");

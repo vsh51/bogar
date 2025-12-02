@@ -93,7 +93,7 @@ public sealed class LobbyStatisticsService : IDisposable
         var standings = BuildStandings(matches);
         var durations = matches
             .Where(m => m.FinishTime.HasValue)
-            .Select(m => Math.Max(0, m.FinishTime.Value - m.StartTime))
+            .Select(m => Math.Max(0, m.FinishTime!.Value - m.StartTime!))
             .ToList();
 
         var snapshot = new LobbyStatisticsSnapshot
@@ -153,7 +153,7 @@ public sealed class LobbyStatisticsService : IDisposable
             DurationSeconds = durationSeconds,
             StartedAt = DateTimeOffset.FromUnixTimeSeconds(match.StartTime),
             FinishedAt = finishedAt,
-            Moves = SplitMoves(match.Moves)
+            Moves = SplitMoves(match.Moves!)
         };
     }
 
@@ -165,12 +165,12 @@ public sealed class LobbyStatisticsService : IDisposable
         {
             if (match.WhiteBot != null)
             {
-                UpdateStanding(map, match.WhiteBot.Username, match.ScoreWhite, match.WinnerId, match.WhiteBotId, match.BlackBotId);
+                UpdateStanding(map, match.WhiteBot.Username!, match.ScoreWhite, match.WinnerId, match.WhiteBotId, match.BlackBotId);
             }
 
             if (match.BlackBot != null)
             {
-                UpdateStanding(map, match.BlackBot.Username, match.ScoreBlack, match.WinnerId, match.BlackBotId, match.WhiteBotId);
+                UpdateStanding(map, match.BlackBot.Username!, match.ScoreBlack, match.WinnerId, match.BlackBotId, match.WhiteBotId);
             }
         }
 
