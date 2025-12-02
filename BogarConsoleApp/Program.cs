@@ -5,9 +5,9 @@ using System.Data.SQLite;
 
 class Program
 {
-    private const string ConnectionString = "Data Source=bogar.db;Version=3;";
+    internal const string ConnectionString = "Data Source=bogar.db;Version=3;";
 
-    static int Main(string[] args)
+    internal static int Main(string[] args)
     {
         string exeName = System.IO.Path.GetFileName(Environment.GetCommandLineArgs()[0]);
 
@@ -50,7 +50,7 @@ class Program
         return 0;
     }
 
-    static void ShowHelp()
+    internal static void ShowHelp()
     {
         Console.WriteLine(@"Usage:
   --fill      Fill the database with random test data
@@ -59,7 +59,7 @@ class Program
 ");
     }
 
-    static void DisplayTable(string tableName)
+    internal static void DisplayTable(string tableName)
     {
         Console.WriteLine($"--- Table | {tableName} ---");
 
@@ -85,7 +85,7 @@ class Program
         }
     }
 
-    static void FillDatabaseWithRandomData()
+    internal static void FillDatabaseWithRandomData()
     {
         var rand = new Random();
 
