@@ -1,4 +1,4 @@
-﻿    using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -38,6 +38,8 @@ namespace Bogar.UI
         private bool _isRefreshingWaitingPlayers;
         private readonly List<Guid> _selectionOrder = new();
 
+        private readonly AdminWaitingRoomWindow _waitingRoomWindow;
+
         private const int MaxSideMoves = 16;
 
         private Chess.Board chessBoard = new Chess.Board();
@@ -50,7 +52,9 @@ namespace Bogar.UI
             string whiteName,
             string blackName,
             string lobbyName,
-            string hostIp)
+            string hostIp,
+            AdminWaitingRoomWindow waitingRoomWindow
+)
         {
             InitializeComponent();
 
@@ -60,6 +64,7 @@ namespace Bogar.UI
             LeftMovesList.ItemsSource = _leftMoves;
             RightMovesList.ItemsSource = _rightMoves;
             WaitingPlayersList.ItemsSource = _waitingClients;
+            _waitingRoomWindow = waitingRoomWindow;
 
             LobbyNameText.Text = $"Lobby: {lobbyName}";
             LobbyIpText.Text = $"IP: {hostIp}";
@@ -594,8 +599,7 @@ namespace Bogar.UI
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            var waitingRoomWindow = new AdminWaitingRoomWindow(_server, _lobbyName);
-            waitingRoomWindow.Show();
+            _waitingRoomWindow.Show();
             this.Close();
         }
 
@@ -631,3 +635,5 @@ namespace Bogar.UI
     }
 
 }
+
+

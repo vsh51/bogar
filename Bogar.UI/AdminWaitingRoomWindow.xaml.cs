@@ -172,9 +172,11 @@ namespace Bogar.UI
                     client1.Nickname,
                     client2.Nickname,
                     _lobbyName,
-                    _hostIp);
+                    _hostIp,
+                    this);
                 WindowNavigationHelper.AlignTo(this, _matchWindow, offsetX: 32, offsetY: 32);
                 _matchWindow.Show();
+                this.Hide();
             }
             else if (!string.IsNullOrEmpty(error))
             {
@@ -265,3 +267,5 @@ namespace Bogar.UI
 
     }
 }
+
+
