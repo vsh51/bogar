@@ -3,6 +3,7 @@ using Bogar.BLL.Player;
 using System;
 using System.Collections.Generic;
 namespace Bogar.BLL.Game;
+
 public class Game
 {
     private readonly IPlayer _whitePlayer;
@@ -13,36 +14,36 @@ public class Game
 
     public Game(IPlayer pl1, IPlayer pl2)
     {
-        _whitePlayer = pl1;
-        _blackPlayer = pl2;
-        _position = new Position();
-        Moves = new List<Move>();
+        this._whitePlayer = pl1;
+        this._blackPlayer = pl2;
+        this._position = new Position();
+        this.Moves = new List<Move>();
     }
 
     public int GetScore()
     {
-        var score = _position.CalculateScore();
+        var score = this._position.CalculateScore();
         return score.whiteScore - score.blackScore;
     }
 
     public (int whiteScore, int blackScore) GetScoreBreakdown()
     {
-        return _position.CalculateScore();
+        return this._position.CalculateScore();
     }
 
     public void DoNextMove()
     {
-        if (Moves.Count >= 32)
+        if (this.Moves.Count >= 32)
         {
             throw new InvalidOperationException(
                 "Game is over. Cannot make more moves.");
         }
 
-        bool isWhiteTurn = (Moves.Count % 2 == 0);
-        IPlayer currentPlayer = isWhiteTurn ? _whitePlayer : _blackPlayer;
+        bool isWhiteTurn = (this.Moves.Count % 2 == 0);
+        IPlayer currentPlayer = isWhiteTurn ? this._whitePlayer : this._blackPlayer;
         Color currentSide = isWhiteTurn ? Color.White : Color.Black;
 
-        string moveString = currentPlayer.GetMove(Moves);
+        string moveString = currentPlayer.GetMove(this.Moves);
         if (string.IsNullOrEmpty(moveString))
         {
             throw new InvalidOperationException(
@@ -52,7 +53,7 @@ public class Game
         Move newMove;
         try
         {
-            newMove = ParseMoveString(moveString, currentSide);
+            newMove = this.ParseMoveString(moveString, currentSide);
         }
         catch (Exception ex)
         {
@@ -61,24 +62,24 @@ public class Game
                 ex);
         }
 
-        _position.DoMove(newMove);
+        this._position.DoMove(newMove);
 
-        Moves.Add(newMove);
+        this.Moves.Add(newMove);
     }
 
     public Position GetCurrentPosition()
     {
-        return new Position(_position);
+        return new Position(this._position);
     }
 
     public bool IsGameOver()
     {
-        return Moves.Count >= 32;
+        return this.Moves.Count >= 32;
     }
 
     public Color GetCurrentTurn()
     {
-        return (Moves.Count % 2 == 0) ? Color.White : Color.Black;
+        return (this.Moves.Count % 2 == 0) ? Color.White : Color.Black;
     }
 
     private Move ParseMoveString(string moveString, Color sideToMove)

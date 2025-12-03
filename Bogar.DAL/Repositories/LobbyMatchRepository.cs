@@ -22,12 +22,12 @@ public sealed class LobbyMatchRepository : ILobbyMatchRepository
 
     public LobbyMatchRepository(Func<GameDbContext> contextFactory)
     {
-        _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+        this._contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
     }
 
     public async Task<int> EnsureLobbyAsync(string lobbyName, CancellationToken cancellationToken = default)
     {
-        await using var context = _contextFactory();
+        await using var context = this._contextFactory();
         var lobby = await context.Lobbies
             .FirstOrDefaultAsync(l => l.Name == lobbyName, cancellationToken);
 
@@ -44,7 +44,7 @@ public sealed class LobbyMatchRepository : ILobbyMatchRepository
 
     public async Task<int> EnsureUserAsync(int lobbyId, string nickname, CancellationToken cancellationToken = default)
     {
-        await using var context = _contextFactory();
+        await using var context = this._contextFactory();
         var user = await context.Users
             .FirstOrDefaultAsync(u => u.LobbyId == lobbyId && u.Username == nickname, cancellationToken);
 
@@ -68,14 +68,14 @@ public sealed class LobbyMatchRepository : ILobbyMatchRepository
 
     public async Task AddMatchAsync(Match match, CancellationToken cancellationToken = default)
     {
-        await using var context = _contextFactory();
+        await using var context = this._contextFactory();
         context.Matches.Add(match);
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<List<Match>> GetMatchesAsync(int lobbyId, CancellationToken cancellationToken = default)
     {
-        await using var context = _contextFactory();
+        await using var context = this._contextFactory();
         return await context.Matches
             .AsNoTracking()
             .Include(m => m.WhiteBot)
@@ -88,7 +88,7 @@ public sealed class LobbyMatchRepository : ILobbyMatchRepository
 
     public async Task DeleteMatchAsync(int lobbyId, int matchId, CancellationToken cancellationToken = default)
     {
-        await using var context = _contextFactory();
+        await using var context = this._contextFactory();
         var match = await context.Matches
             .FirstOrDefaultAsync(m => m.Id == matchId && m.LobbyId == lobbyId, cancellationToken);
 

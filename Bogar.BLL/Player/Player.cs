@@ -11,14 +11,14 @@ public class Player : IPlayer
 
     public Player(string path)
     {
-        _path = path;
+        this._path = path;
     }
-    
-    public string GetMove(List<Move> moves) 
+
+    public string GetMove(List<Move> moves)
     {
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
-            FileName = _path,
+            FileName = this._path,
             UseShellExecute = false,
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
@@ -39,7 +39,7 @@ public class Player : IPlayer
                     {
                         writer.WriteLine(move.ToString());
                     }
-                } 
+                }
 
                 string? newMove = process.StandardOutput.ReadLine();
                 string errors = process.StandardError.ReadToEnd();
@@ -48,7 +48,7 @@ public class Player : IPlayer
                 if (!string.IsNullOrEmpty(errors))
                 {
                     throw new Exception(
-                        $"Помилка виконання бота ({_path}): {errors}"
+                        $"Помилка виконання бота ({this._path}): {errors}"
                     );
                 }
 
@@ -57,7 +57,7 @@ public class Player : IPlayer
             catch (Exception ex)
             {
                 Console.WriteLine($"Не вдалося запустити бота: {ex.Message}");
-                return string.Empty; 
+                return string.Empty;
             }
         }
     }

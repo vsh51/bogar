@@ -12,19 +12,19 @@ public sealed class NetworkMessage
 
     public NetworkMessage(MessageType type, byte[]? payload = null)
     {
-        Type = type;
-        Payload = payload ?? Array.Empty<byte>();
+        this.Type = type;
+        this.Payload = payload ?? Array.Empty<byte>();
     }
 
     public byte[] Serialize()
     {
         using var ms = new MemoryStream();
-        ms.WriteByte((byte)Type);
-        var lengthBytes = BitConverter.GetBytes(Payload.Length);
+        ms.WriteByte((byte)this.Type);
+        var lengthBytes = BitConverter.GetBytes(this.Payload.Length);
         ms.Write(lengthBytes, 0, lengthBytes.Length);
-        if (Payload.Length > 0)
+        if (this.Payload.Length > 0)
         {
-            ms.Write(Payload, 0, Payload.Length);
+            ms.Write(this.Payload, 0, this.Payload.Length);
         }
         return ms.ToArray();
     }
@@ -36,6 +36,6 @@ public sealed class NetworkMessage
 
     public string GetText()
     {
-        return Encoding.UTF8.GetString(Payload);
+        return Encoding.UTF8.GetString(this.Payload);
     }
 }

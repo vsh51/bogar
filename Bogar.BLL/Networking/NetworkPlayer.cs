@@ -21,33 +21,33 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
 
     public NetworkPlayer(TcpClient client, string nickname)
     {
-        _client = client;
-        _stream = client.GetStream();
-        _reader = new MessageReader(_stream);
-        _nickname = nickname;
+        this._client = client;
+        this._stream = client.GetStream();
+        this._reader = new MessageReader(this._stream);
+        this._nickname = nickname;
     }
 
     public string GetMove(List<Move> moves)
     {
-        return GetMoveAsync(moves).GetAwaiter().GetResult();
+        return this.GetMoveAsync(moves).GetAwaiter().GetResult();
     }
 
     private async Task<string> GetMoveAsync(
         List<Move> moves, CancellationToken cancellationToken = default)
     {
-        await _sendLock.WaitAsync(cancellationToken);
+        await this._sendLock.WaitAsync(cancellationToken);
         try
         {
             var payload = SerializeMoves(moves);
             var message = new NetworkMessage(
                 MessageType.ServerRequestMove, payload);
             var bytes = message.Serialize();
-            await _stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
-            await _stream.FlushAsync(cancellationToken);
+            await this._stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
+            await this._stream.FlushAsync(cancellationToken);
         }
         finally
         {
-            _sendLock.Release();
+            this._sendLock.Release();
         }
 
         using var timeoutCts = CancellationTokenSource
@@ -55,7 +55,7 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
 
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(30));
 
-        var response = await _reader.ReadMessageAsync(timeoutCts.Token);
+        var response = await this._reader.ReadMessageAsync(timeoutCts.Token);
 
         if (response.Type == MessageType.ClientMoveResponse)
         {
@@ -69,11 +69,11 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
         if (response.Type == MessageType.ClientDisconnect)
         {
             throw new InvalidOperationException(
-                $"Client {_nickname} disconnected: {response.GetText()}");
+                $"Client {this._nickname} disconnected: {response.GetText()}");
         }
 
         throw new InvalidOperationException(
-            $"Unexpected response from {_nickname}: {response.Type}");
+            $"Unexpected response from {this._nickname}: {response.Type}");
     }
 
     public async Task SendMatchPrepareAsync(
@@ -81,7 +81,7 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
     {
         var message = NetworkMessage.CreateText(
             MessageType.ServerMatchPrepare, opponentNickname);
-        await SendAsync(message, cancellationToken);
+        await this.SendAsync(message, cancellationToken);
     }
 
     public async Task SendGameStartAsync(
@@ -91,7 +91,7 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
         var payload = $"{opponentNickname}|{color}";
         var message = NetworkMessage.CreateText(
             MessageType.ServerGameStart, payload);
-        await SendAsync(message, cancellationToken);
+        await this.SendAsync(message, cancellationToken);
     }
 
     public async Task SendGameEndAsync(
@@ -99,22 +99,22 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
     {
         var message = NetworkMessage.CreateText(
             MessageType.ServerGameEnd, result);
-        await SendAsync(message, cancellationToken);
+        await this.SendAsync(message, cancellationToken);
     }
 
     private async Task SendAsync(
         NetworkMessage message, CancellationToken cancellationToken)
     {
         var bytes = message.Serialize();
-        await _sendLock.WaitAsync(cancellationToken);
+        await this._sendLock.WaitAsync(cancellationToken);
         try
         {
-            await _stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
-            await _stream.FlushAsync(cancellationToken);
+            await this._stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
+            await this._stream.FlushAsync(cancellationToken);
         }
         finally
         {
-            _sendLock.Release();
+            this._sendLock.Release();
         }
     }
 
@@ -138,7 +138,7 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
     {
         try
         {
-            _sendLock.Dispose();
+            this._sendLock.Dispose();
         }
         catch
         {
@@ -146,7 +146,7 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
 
         try
         {
-            _stream.Dispose();
+            this._stream.Dispose();
         }
         catch
         {
@@ -154,7 +154,7 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
 
         try
         {
-            _client.Dispose();
+            this._client.Dispose();
         }
         catch
         {

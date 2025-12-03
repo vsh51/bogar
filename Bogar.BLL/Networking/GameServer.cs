@@ -38,57 +38,57 @@ public sealed class GameServer : IDisposable
 
     public GameServer(int port)
     {
-        Port = port;
-        _listener = new TcpListener(IPAddress.Any, port);
+        this.Port = port;
+        this._listener = new TcpListener(IPAddress.Any, port);
     }
 
     public async Task StartAsync()
     {
-        if (_isRunning)
+        if (this._isRunning)
         {
             return;
         }
 
-        _listener.Start();
-        _isRunning = true;
-        LogMessage?.Invoke($"Server started on port {Port}");
-        Logger.Information("Server started on port {Port}", Port);
+        this._listener.Start();
+        this._isRunning = true;
+        this.LogMessage?.Invoke($"Server started on port {this.Port}");
+        Logger.Information("Server started on port {Port}", this.Port);
 
-        _ = Task.Run(AcceptClientsAsync, _cancellationTokenSource.Token);
+        _ = Task.Run(this.AcceptClientsAsync, this._cancellationTokenSource.Token);
     }
 
     public void Stop()
     {
-        if (!_isRunning)
+        if (!this._isRunning)
         {
             return;
         }
 
-        _isRunning = false;
-        _cancellationTokenSource.Cancel();
+        this._isRunning = false;
+        this._cancellationTokenSource.Cancel();
 
         try
         {
-            _listener.Stop();
+            this._listener.Stop();
         }
         catch
         {
         }
 
-        foreach (var client in _clients.Values)
+        foreach (var client in this._clients.Values)
         {
             try
             {
-                ClientDisconnected?.Invoke(client);
+                this.ClientDisconnected?.Invoke(client);
                 client.Dispose();
             }
             catch
             {
             }
         }
-        _clients.Clear();
+        this._clients.Clear();
 
-        foreach (var controller in _matchControllers.Values)
+        foreach (var controller in this._matchControllers.Values)
         {
             try
             {
@@ -98,29 +98,29 @@ public sealed class GameServer : IDisposable
             {
             }
         }
-        _matchControllers.Clear();
+        this._matchControllers.Clear();
 
-        lock (_inGameLock)
+        lock (this._inGameLock)
         {
-            _clientsInGame.Clear();
+            this._clientsInGame.Clear();
         }
 
-        LogMessage?.Invoke("Server stopped");
+        this.LogMessage?.Invoke("Server stopped");
         Logger.Information("Server stopped");
     }
 
     public IReadOnlyList<ConnectedClient> GetConnectedClients()
     {
-        return _clients.Values
+        return this._clients.Values
             .OrderBy(c => c.Nickname, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
 
     public bool IsClientInGame(Guid clientId)
     {
-        lock (_inGameLock)
+        lock (this._inGameLock)
         {
-            return _clientsInGame.Contains(clientId);
+            return this._clientsInGame.Contains(clientId);
         }
     }
 
@@ -133,61 +133,61 @@ public sealed class GameServer : IDisposable
             return false;
         }
 
-        if (!_clients.TryGetValue(whiteId, out var white))
+        if (!this._clients.TryGetValue(whiteId, out var white))
         {
             error = "White player disconnected.";
             return false;
         }
 
-        if (!_clients.TryGetValue(blackId, out var black))
+        if (!this._clients.TryGetValue(blackId, out var black))
         {
             error = "Black player disconnected.";
             return false;
         }
 
-        lock (_inGameLock)
+        lock (this._inGameLock)
         {
-            if (_clientsInGame.Contains(whiteId) || _clientsInGame.Contains(blackId))
+            if (this._clientsInGame.Contains(whiteId) || this._clientsInGame.Contains(blackId))
             {
                 error = "One of the players is already in a match.";
                 return false;
             }
 
-            _clientsInGame.Add(whiteId);
-            _clientsInGame.Add(blackId);
+            this._clientsInGame.Add(whiteId);
+            this._clientsInGame.Add(blackId);
         }
 
-        LogMessage?.Invoke($"Starting match {white.Nickname} vs {black.Nickname}");
+        this.LogMessage?.Invoke($"Starting match {white.Nickname} vs {black.Nickname}");
         Logger.Information("Starting match {White} vs {Black}", white.Nickname, black.Nickname);
 
         var matchKey = (whiteId, blackId);
         var controller = new MatchController();
-        _matchControllers[matchKey] = controller;
+        this._matchControllers[matchKey] = controller;
 
         var matchToken = controller.MatchCancellation.Token;
-        var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancellationTokenSource.Token, matchToken);
+        var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(this._cancellationTokenSource.Token, matchToken);
 
         _ = Task.Run(async () =>
         {
             try
             {
-                await RunGameAsync(white, black, controller, linkedTokenSource.Token);
+                await this.RunGameAsync(white, black, controller, linkedTokenSource.Token);
             }
             catch (Exception ex)
             {
-                LogMessage?.Invoke($"Match error: {ex.Message}");
+                this.LogMessage?.Invoke($"Match error: {ex.Message}");
                 Logger.Error(ex, "Match error while running {White} vs {Black}", white.Nickname, black.Nickname);
             }
             finally
             {
                 linkedTokenSource.Dispose();
-                _matchControllers.TryRemove(matchKey, out var existingController);
+                this._matchControllers.TryRemove(matchKey, out var existingController);
                 existingController?.Dispose();
 
-                lock (_inGameLock)
+                lock (this._inGameLock)
                 {
-                    _clientsInGame.Remove(whiteId);
-                    _clientsInGame.Remove(blackId);
+                    this._clientsInGame.Remove(whiteId);
+                    this._clientsInGame.Remove(blackId);
                 }
             }
         });
@@ -197,7 +197,7 @@ public sealed class GameServer : IDisposable
 
     public bool TryPauseMatch(Guid whiteId, Guid blackId)
     {
-        if (_matchControllers.TryGetValue((whiteId, blackId), out var controller))
+        if (this._matchControllers.TryGetValue((whiteId, blackId), out var controller))
         {
             return controller.TryPause();
         }
@@ -207,7 +207,7 @@ public sealed class GameServer : IDisposable
 
     public bool TryResumeMatch(Guid whiteId, Guid blackId)
     {
-        if (_matchControllers.TryGetValue((whiteId, blackId), out var controller))
+        if (this._matchControllers.TryGetValue((whiteId, blackId), out var controller))
         {
             return controller.TryResume();
         }
@@ -217,7 +217,7 @@ public sealed class GameServer : IDisposable
 
     public bool StopMatch(Guid whiteId, Guid blackId)
     {
-        if (_matchControllers.TryGetValue((whiteId, blackId), out var controller))
+        if (this._matchControllers.TryGetValue((whiteId, blackId), out var controller))
         {
             controller.MatchCancellation.Cancel();
             return true;
@@ -227,22 +227,22 @@ public sealed class GameServer : IDisposable
 
     public bool IsMatchPaused(Guid whiteId, Guid blackId)
     {
-        return _matchControllers.TryGetValue((whiteId, blackId), out var controller) && controller.IsPaused;
+        return this._matchControllers.TryGetValue((whiteId, blackId), out var controller) && controller.IsPaused;
     }
 
     public bool TryKickClient(Guid clientId, out string? error)
     {
         error = null;
 
-        if (!_clients.TryRemove(clientId, out var client))
+        if (!this._clients.TryRemove(clientId, out var client))
         {
             error = "Player is no longer connected.";
             return false;
         }
 
-        lock (_inGameLock)
+        lock (this._inGameLock)
         {
-            _clientsInGame.Remove(clientId);
+            this._clientsInGame.Remove(clientId);
         }
 
         try
@@ -255,27 +255,27 @@ public sealed class GameServer : IDisposable
 
         try
         {
-            ClientDisconnected?.Invoke(client);
+            this.ClientDisconnected?.Invoke(client);
         }
         catch
         {
         }
 
-        LogMessage?.Invoke($"Client kicked: {client.Nickname}");
+        this.LogMessage?.Invoke($"Client kicked: {client.Nickname}");
         Logger.Information("Client {Nickname} was kicked", client.Nickname);
         return true;
     }
 
     private async Task AcceptClientsAsync()
     {
-        while (_isRunning && !_cancellationTokenSource.Token.IsCancellationRequested)
+        while (this._isRunning && !this._cancellationTokenSource.Token.IsCancellationRequested)
         {
             try
             {
-                var tcpClient = await _listener.AcceptTcpClientAsync(
-                    _cancellationTokenSource.Token);
-                _ = Task.Run(() => HandleClientAsync(tcpClient,
-                    _cancellationTokenSource.Token));
+                var tcpClient = await this._listener.AcceptTcpClientAsync(
+                    this._cancellationTokenSource.Token);
+                _ = Task.Run(() => this.HandleClientAsync(tcpClient,
+                    this._cancellationTokenSource.Token));
             }
             catch (OperationCanceledException)
             {
@@ -283,9 +283,9 @@ public sealed class GameServer : IDisposable
             }
             catch (Exception ex)
             {
-                if (_isRunning)
+                if (this._isRunning)
                 {
-                    LogMessage?.Invoke($"Accept error: {ex.Message}");
+                    this.LogMessage?.Invoke($"Accept error: {ex.Message}");
                     Logger.Error(ex, "Failed to accept incoming client");
                 }
             }
@@ -330,7 +330,7 @@ public sealed class GameServer : IDisposable
                 Player = new NetworkPlayer(tcpClient, nickname)
             };
 
-            _clients[clientId] = connected;
+            this._clients[clientId] = connected;
 
             var ack = NetworkMessage.CreateText(
                 MessageType.ServerRegisterAck, "OK");
@@ -338,26 +338,26 @@ public sealed class GameServer : IDisposable
             await stream.WriteAsync(
                 ackBytes, 0, ackBytes.Length, cancellationToken);
 
-            LogMessage?.Invoke($"Client connected: {nickname}");
+            this.LogMessage?.Invoke($"Client connected: {nickname}");
             Logger.Information("Client connected: {Nickname}", nickname);
-            ClientConnected?.Invoke(connected);
+            this.ClientConnected?.Invoke(connected);
 
-            await MonitorClientAsync(connected, cancellationToken);
+            await this.MonitorClientAsync(connected, cancellationToken);
         }
         catch (Exception ex)
         {
-            LogMessage?.Invoke($"Client error: {ex.Message}");
+            this.LogMessage?.Invoke($"Client error: {ex.Message}");
             Logger.Error(ex, "Client error for ID {ClientId}", clientId);
         }
         finally
         {
             if (connected != null)
             {
-                _clients.TryRemove(clientId, out _);
-                ClientDisconnected?.Invoke(connected);
-                lock (_inGameLock)
+                this._clients.TryRemove(clientId, out _);
+                this.ClientDisconnected?.Invoke(connected);
+                lock (this._inGameLock)
                 {
-                    _clientsInGame.Remove(clientId);
+                    this._clientsInGame.Remove(clientId);
                 }
                 connected.Dispose();
                 Logger.Information("Client disconnected: {Nickname}", connected.Nickname);
@@ -432,7 +432,7 @@ public sealed class GameServer : IDisposable
             await black.Player.SendGameStartAsync(
                 white.Nickname, Color.Black, cancellationToken);
 
-            GameStarted?.Invoke(white, black);
+            this.GameStarted?.Invoke(white, black);
 
             var game = new GameInstance(white.Player, black.Player);
 
@@ -450,7 +450,7 @@ public sealed class GameServer : IDisposable
                     {
                         try
                         {
-                            MoveExecuted?.Invoke(
+                            this.MoveExecuted?.Invoke(
                                 white, black, lastMove, moveColor);
                         }
                         catch
@@ -461,7 +461,7 @@ public sealed class GameServer : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    LogMessage?.Invoke($"Game loop error: {ex.Message}");
+                    this.LogMessage?.Invoke($"Game loop error: {ex.Message}");
                     Logger.Error(ex, "Game loop error for {White} vs {Black}", white.Nickname, black.Nickname);
                     break;
                 }
@@ -484,7 +484,7 @@ public sealed class GameServer : IDisposable
             await white.Player.SendGameEndAsync(result, cancellationToken);
             await black.Player.SendGameEndAsync(result, cancellationToken);
 
-            GameEnded?.Invoke(white, black, winner);
+            this.GameEnded?.Invoke(white, black, winner);
             var matchFinish = DateTimeOffset.UtcNow;
             var (whiteScore, blackScore) = game.GetScoreBreakdown();
             var moves = game.Moves
@@ -492,7 +492,7 @@ public sealed class GameServer : IDisposable
                 .Select(FormatMove)
                 .ToArray();
 
-            MatchCompleted?.Invoke(new MatchResult
+            this.MatchCompleted?.Invoke(new MatchResult
             {
                 WhiteClientId = white.Id,
                 WhiteNickname = white.Nickname,
@@ -507,12 +507,12 @@ public sealed class GameServer : IDisposable
                 FinishedAt = matchFinish,
                 IsAutoWin = false
             });
-            LogMessage?.Invoke($"Game finished: {result}");
+            this.LogMessage?.Invoke($"Game finished: {result}");
             Logger.Information("Game finished: {Result}", result);
         }
         catch (Exception ex)
         {
-            LogMessage?.Invoke($"Run game error: {ex.Message}");
+            this.LogMessage?.Invoke($"Run game error: {ex.Message}");
             Logger.Error(ex, "Run game error for {White} vs {Black}", white.Nickname, black.Nickname);
         }
     }
@@ -551,8 +551,8 @@ public sealed class GameServer : IDisposable
 
     public void Dispose()
     {
-        Stop();
-        _cancellationTokenSource.Dispose();
+        this.Stop();
+        this._cancellationTokenSource.Dispose();
     }
 }
 
@@ -565,30 +565,30 @@ internal sealed class MatchController : IDisposable
 
     public void WaitUntilResumed(CancellationToken cancellationToken)
     {
-        _resumeEvent.Wait(cancellationToken);
+        this._resumeEvent.Wait(cancellationToken);
     }
 
     public bool TryPause()
     {
-        if (IsPaused)
+        if (this.IsPaused)
         {
             return false;
         }
 
-        IsPaused = true;
-        _resumeEvent.Reset();
+        this.IsPaused = true;
+        this._resumeEvent.Reset();
         return true;
     }
 
     public bool TryResume()
     {
-        if (!IsPaused)
+        if (!this.IsPaused)
         {
             return false;
         }
 
-        IsPaused = false;
-        _resumeEvent.Set();
+        this.IsPaused = false;
+        this._resumeEvent.Set();
         return true;
     }
 
@@ -596,7 +596,7 @@ internal sealed class MatchController : IDisposable
     {
         try
         {
-            _resumeEvent.Dispose();
+            this._resumeEvent.Dispose();
         }
         catch
         {
@@ -604,7 +604,7 @@ internal sealed class MatchController : IDisposable
 
         try
         {
-            MatchCancellation.Dispose();
+            this.MatchCancellation.Dispose();
         }
         catch
         {
@@ -623,7 +623,7 @@ public sealed class ConnectedClient : IDisposable
     {
         try
         {
-            Player?.Dispose();
+            this.Player?.Dispose();
         }
         catch
         {
@@ -631,7 +631,7 @@ public sealed class ConnectedClient : IDisposable
 
         try
         {
-            TcpClient?.Close();
+            this.TcpClient?.Close();
         }
         catch
         {

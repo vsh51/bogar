@@ -12,16 +12,16 @@ public sealed class MessageReader
 
     public MessageReader(NetworkStream stream)
     {
-        _stream = stream;
+        this._stream = stream;
     }
 
     public async Task<NetworkMessage> ReadMessageAsync(
         CancellationToken cancellationToken)
     {
-        await ReadFullyAsync(_header, 0, _header.Length, cancellationToken);
+        await this.ReadFullyAsync(this._header, 0, this._header.Length, cancellationToken);
 
-        var type = (MessageType)_header[0];
-        var payloadLength = BitConverter.ToInt32(_header, 1);
+        var type = (MessageType)this._header[0];
+        var payloadLength = BitConverter.ToInt32(this._header, 1);
 
         if (payloadLength < 0 || payloadLength > 50_000_000)
             throw new InvalidOperationException(
@@ -31,7 +31,7 @@ public sealed class MessageReader
         if (payloadLength > 0)
         {
             payload = new byte[payloadLength];
-            await ReadFullyAsync(payload, 0, payloadLength, cancellationToken);
+            await this.ReadFullyAsync(payload, 0, payloadLength, cancellationToken);
         }
 
         return new NetworkMessage(type, payload);
@@ -45,7 +45,7 @@ public sealed class MessageReader
         int read = 0;
         while (read < count)
         {
-            int bytesRead = await _stream.ReadAsync(
+            int bytesRead = await this._stream.ReadAsync(
                 buffer, offset + read,
                 count - read, cancellationToken);
 

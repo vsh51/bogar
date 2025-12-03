@@ -17,18 +17,18 @@ public sealed class LobbyDatabase : IDisposable
     {
         var connectionString = BuildConnectionString(lobbyName);
 
-        _rootConnection = new SqliteConnection(connectionString);
-        _rootConnection.Open();
+        this._rootConnection = new SqliteConnection(connectionString);
+        this._rootConnection.Open();
 
-        _options = new DbContextOptionsBuilder<GameDbContext>()
+        this._options = new DbContextOptionsBuilder<GameDbContext>()
             .UseSqlite(connectionString)
             .Options;
 
-        using var context = new GameDbContext(_options);
+        using var context = new GameDbContext(this._options);
         context.Database.EnsureCreated();
     }
 
-    public GameDbContext CreateContext() => new(_options);
+    public GameDbContext CreateContext() => new(this._options);
 
     private static string BuildConnectionString(string lobbyName)
     {
@@ -68,6 +68,6 @@ public sealed class LobbyDatabase : IDisposable
 
     public void Dispose()
     {
-        _rootConnection.Dispose();
+        this._rootConnection.Dispose();
     }
 }

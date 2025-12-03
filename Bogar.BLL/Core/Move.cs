@@ -7,13 +7,13 @@ public readonly struct Move
 
     public Move(Piece piece, Square square)
     {
-        Piece = piece;
-        Square = square;
+        this.Piece = piece;
+        this.Square = square;
     }
 
     public override string ToString()
     {
-        char symbol = Piece.TypeOfPiece() switch
+        char symbol = this.Piece.TypeOfPiece() switch
         {
             PieceType.Pawn => 'P',
             PieceType.Knight => 'N',
@@ -24,6 +24,6 @@ public readonly struct Move
             _ => '?'
         };
 
-        return $"{symbol}{Square}";
+        return $"{symbol}{this.Square}";
     }
 }

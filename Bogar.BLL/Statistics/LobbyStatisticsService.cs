@@ -22,9 +22,9 @@ public sealed class LobbyStatisticsService : IDisposable
 
     public LobbyStatisticsService(string lobbyName)
     {
-        _lobbyName = lobbyName;
-        _database = new LobbyDatabase(lobbyName);
-        _repository = new LobbyMatchRepository(_database.CreateContext);
+        this._lobbyName = lobbyName;
+        this._database = new LobbyDatabase(lobbyName);
+        this._repository = new LobbyMatchRepository(this._database.CreateContext);
     }
 
     public async Task RecordMatchAsync(MatchResult result, CancellationToken cancellationToken = default)
@@ -36,9 +36,9 @@ public sealed class LobbyStatisticsService : IDisposable
 
         try
         {
-            var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
-            var whiteUserId = await _repository.EnsureUserAsync(lobbyId, result.WhiteNickname, cancellationToken);
-            var blackUserId = await _repository.EnsureUserAsync(lobbyId, result.BlackNickname, cancellationToken);
+            var lobbyId = await this.EnsureLobbyIdAsync(cancellationToken);
+            var whiteUserId = await this._repository.EnsureUserAsync(lobbyId, result.WhiteNickname, cancellationToken);
+            var blackUserId = await this._repository.EnsureUserAsync(lobbyId, result.BlackNickname, cancellationToken);
 
             int? winnerId = result.Winner switch
             {
@@ -62,10 +62,10 @@ public sealed class LobbyStatisticsService : IDisposable
                 Status = result.Status
             };
 
-            await _repository.AddMatchAsync(match, cancellationToken);
+            await this._repository.AddMatchAsync(match, cancellationToken);
             Logger.Information(
                 "Recorded match in lobby {Lobby}: {White} vs {Black} winner={Winner}",
-                _lobbyName,
+                this._lobbyName,
                 result.WhiteNickname,
                 result.BlackNickname,
                 result.Winner?.ToString() ?? "Draw");
@@ -74,7 +74,7 @@ public sealed class LobbyStatisticsService : IDisposable
         {
             Logger.Error(ex,
                 "Failed to record match for lobby {Lobby}: {White} vs {Black}",
-                _lobbyName,
+                this._lobbyName,
                 result.WhiteNickname,
                 result.BlackNickname);
             throw;
@@ -85,13 +85,13 @@ public sealed class LobbyStatisticsService : IDisposable
     {
         try
         {
-            var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
-            await _repository.DeleteMatchAsync(lobbyId, matchId, cancellationToken);
-            Logger.Information("Deleted match {MatchId} from lobby {Lobby}", matchId, _lobbyName);
+            var lobbyId = await this.EnsureLobbyIdAsync(cancellationToken);
+            await this._repository.DeleteMatchAsync(lobbyId, matchId, cancellationToken);
+            Logger.Information("Deleted match {MatchId} from lobby {Lobby}", matchId, this._lobbyName);
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, "Failed to delete match {MatchId} from lobby {Lobby}", matchId, _lobbyName);
+            Logger.Error(ex, "Failed to delete match {MatchId} from lobby {Lobby}", matchId, this._lobbyName);
             throw;
         }
     }
@@ -100,19 +100,19 @@ public sealed class LobbyStatisticsService : IDisposable
     {
         try
         {
-            var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
-            var matches = await _repository.GetMatchesAsync(lobbyId, cancellationToken);
+            var lobbyId = await this.EnsureLobbyIdAsync(cancellationToken);
+            var matches = await this._repository.GetMatchesAsync(lobbyId, cancellationToken);
 
             var result = matches
                 .Select(MapHistoryEntry)
                 .ToList();
 
-            Logger.Information("Loaded {Count} matches for lobby {Lobby}", result.Count, _lobbyName);
+            Logger.Information("Loaded {Count} matches for lobby {Lobby}", result.Count, this._lobbyName);
             return result;
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, "Failed to load match history for lobby {Lobby}", _lobbyName);
+            Logger.Error(ex, "Failed to load match history for lobby {Lobby}", this._lobbyName);
             throw;
         }
     }
@@ -121,18 +121,18 @@ public sealed class LobbyStatisticsService : IDisposable
     {
         try
         {
-            var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
-            var matches = await _repository.GetMatchesAsync(lobbyId, cancellationToken);
+            var lobbyId = await this.EnsureLobbyIdAsync(cancellationToken);
+            var matches = await this._repository.GetMatchesAsync(lobbyId, cancellationToken);
 
             if (matches.Count == 0)
             {
                 var emptySnapshot = new LobbyStatisticsSnapshot
                 {
-                    LobbyName = _lobbyName,
+                    LobbyName = this._lobbyName,
                     PlayerStandings = Array.Empty<PlayerStanding>(),
                     TopPerformer = null
                 };
-                Logger.Information("No matches found for lobby {Lobby} while building snapshot", _lobbyName);
+                Logger.Information("No matches found for lobby {Lobby} while building snapshot", this._lobbyName);
                 return emptySnapshot;
             }
 
@@ -144,7 +144,7 @@ public sealed class LobbyStatisticsService : IDisposable
 
             var snapshot = new LobbyStatisticsSnapshot
             {
-                LobbyName = _lobbyName,
+                LobbyName = this._lobbyName,
                 TotalMatches = matches.Count,
                 DrawMatches = matches.Count(m => m.WinnerId == null),
                 AverageDurationSeconds = durations.Count == 0 ? 0 : durations.Average(),
@@ -152,38 +152,38 @@ public sealed class LobbyStatisticsService : IDisposable
                 TopPerformer = standings.FirstOrDefault()
             };
 
-            Logger.Information("Calculated lobby snapshot for {Lobby}", _lobbyName);
+            Logger.Information("Calculated lobby snapshot for {Lobby}", this._lobbyName);
             return snapshot;
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, "Failed to build lobby statistics for {Lobby}", _lobbyName);
+            Logger.Error(ex, "Failed to build lobby statistics for {Lobby}", this._lobbyName);
             throw;
         }
     }
 
     private async Task<int> EnsureLobbyIdAsync(CancellationToken cancellationToken)
     {
-        if (_lobbyId.HasValue)
+        if (this._lobbyId.HasValue)
         {
-            return _lobbyId.Value;
+            return this._lobbyId.Value;
         }
 
-        await _lobbyInitSemaphore.WaitAsync(cancellationToken);
+        await this._lobbyInitSemaphore.WaitAsync(cancellationToken);
         try
         {
-            if (!_lobbyId.HasValue)
+            if (!this._lobbyId.HasValue)
             {
-                _lobbyId = await _repository.EnsureLobbyAsync(_lobbyName, cancellationToken);
-                Logger.Information("Initialized lobby storage for {Lobby}", _lobbyName);
+                this._lobbyId = await this._repository.EnsureLobbyAsync(this._lobbyName, cancellationToken);
+                Logger.Information("Initialized lobby storage for {Lobby}", this._lobbyName);
             }
         }
         finally
         {
-            _lobbyInitSemaphore.Release();
+            this._lobbyInitSemaphore.Release();
         }
 
-        return _lobbyId.Value;
+        return this._lobbyId.Value;
     }
 
     private static MatchHistoryEntry MapHistoryEntry(Match match)
@@ -291,15 +291,15 @@ public sealed class LobbyStatisticsService : IDisposable
 
     public void Dispose()
     {
-        _lobbyInitSemaphore.Dispose();
-        _database.Dispose();
+        this._lobbyInitSemaphore.Dispose();
+        this._database.Dispose();
     }
 
     private sealed class MutableStanding
     {
         public MutableStanding(string botName)
         {
-            BotName = botName;
+            this.BotName = botName;
         }
 
         public string BotName { get; }

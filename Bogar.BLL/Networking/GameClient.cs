@@ -28,7 +28,7 @@ public sealed class GameClient : IDisposable
     public event Action? Disconnected;
 
     public string? Nickname { get; private set; }
-    public bool IsConnected => _tcpClient?.Connected ?? false;
+    public bool IsConnected => this._tcpClient?.Connected ?? false;
 
     public async Task<bool> ConnectAsync(
         string host, int port,
@@ -38,7 +38,7 @@ public sealed class GameClient : IDisposable
         if (!File.Exists(botPath))
         {
             const string message = "Bot executable not found.";
-            LogMessage?.Invoke(message);
+            this.LogMessage?.Invoke(message);
             Logger.Warning("Bot executable missing at {BotPath}", botPath);
             return false;
         }
@@ -46,35 +46,35 @@ public sealed class GameClient : IDisposable
         try
         {
             Logger.Information("Connecting to {Host}:{Port} as {Nickname}", host, port, nickname);
-            _localBot = new Player.Player(botPath);
-            _tcpClient = new TcpClient();
-            await _tcpClient.ConnectAsync(host, port, cancellationToken);
-            _stream = _tcpClient.GetStream();
-            _reader = new MessageReader(_stream);
-            Nickname = nickname;
+            this._localBot = new Player.Player(botPath);
+            this._tcpClient = new TcpClient();
+            await this._tcpClient.ConnectAsync(host, port, cancellationToken);
+            this._stream = this._tcpClient.GetStream();
+            this._reader = new MessageReader(this._stream);
+            this.Nickname = nickname;
 
             var register = NetworkMessage.CreateText(
                 MessageType.ClientRegister, nickname
             );
-            await SendAsync(register, cancellationToken);
+            await this.SendAsync(register, cancellationToken);
 
-            var ack = await _reader.ReadMessageAsync(cancellationToken);
+            var ack = await this._reader.ReadMessageAsync(cancellationToken);
             if (ack.Type != MessageType.ServerRegisterAck)
             {
-                ErrorReceived?.Invoke("Server rejected registration.");
+                this.ErrorReceived?.Invoke("Server rejected registration.");
                 Logger.Warning("Registration rejected by server at {Host}:{Port}", host, port);
                 return false;
             }
 
-            LogMessage?.Invoke("Connected to server.");
+            this.LogMessage?.Invoke("Connected to server.");
             Logger.Information("Connected to {Host}:{Port} as {Nickname}", host, port, nickname);
-            _ = Task.Run(() => ListenAsync(
+            _ = Task.Run(() => this.ListenAsync(
                 cancellationToken), cancellationToken);
             return true;
         }
         catch (Exception ex)
         {
-            ErrorReceived?.Invoke($"Connection error: {ex.Message}");
+            this.ErrorReceived?.Invoke($"Connection error: {ex.Message}");
             Logger.Error(ex, "Failed to connect to {Host}:{Port} as {Nickname}", host, port, nickname);
             return false;
         }
@@ -84,9 +84,9 @@ public sealed class GameClient : IDisposable
     {
         try
         {
-            while (IsConnected && !cancellationToken.IsCancellationRequested)
+            while (this.IsConnected && !cancellationToken.IsCancellationRequested)
             {
-                var message = await _reader!.ReadMessageAsync(
+                var message = await this._reader!.ReadMessageAsync(
                     cancellationToken
                 );
 
@@ -95,7 +95,7 @@ public sealed class GameClient : IDisposable
                     case MessageType.ServerMatchPrepare:
                         var opponentPreparing = message.GetText();
                         Logger.Information("Match preparing against {Opponent}", opponentPreparing);
-                        MatchPreparing?.Invoke(opponentPreparing);
+                        this.MatchPreparing?.Invoke(opponentPreparing);
                         break;
                     case MessageType.ServerGameStart:
                         var parts = message.GetText().Split('|');
@@ -105,22 +105,22 @@ public sealed class GameClient : IDisposable
                             ? parsedColor
                             : Color.White;
                         Logger.Information("Game started vs {Opponent} as {Color}", opponent, color);
-                        GameStarted?.Invoke(opponent, color);
+                        this.GameStarted?.Invoke(opponent, color);
                         break;
                     case MessageType.ServerRequestMove:
-                        Logger.Debug("Server requested move from bot {Nickname}", Nickname);
-                        await HandleMoveRequestAsync(
+                        Logger.Debug("Server requested move from bot {Nickname}", this.Nickname);
+                        await this.HandleMoveRequestAsync(
                             message.Payload, cancellationToken);
                         break;
                     case MessageType.ServerGameEnd:
                         var result = message.GetText();
                         Logger.Information("Game ended: {Result}", result);
-                        GameEnded?.Invoke(result);
+                        this.GameEnded?.Invoke(result);
                         break;
                     case MessageType.ServerError:
                         var error = message.GetText();
                         Logger.Warning("Server error received: {Message}", error);
-                        ErrorReceived?.Invoke(error);
+                        this.ErrorReceived?.Invoke(error);
                         break;
                 }
             }
@@ -130,23 +130,23 @@ public sealed class GameClient : IDisposable
         }
         catch (IOException)
         {
-            ErrorReceived?.Invoke("Server shutdown — connection closed.");
+            this.ErrorReceived?.Invoke("Server shutdown — connection closed.");
             Logger.Warning("Server shutdown detected");
         }
         catch (SocketException)
         {
-            ErrorReceived?.Invoke("Connection lost.");
+            this.ErrorReceived?.Invoke("Connection lost.");
             Logger.Warning("Socket connection lost");
         }
         catch (Exception ex)
         {
-            ErrorReceived?.Invoke($"Network error: {ex.Message}");
+            this.ErrorReceived?.Invoke($"Network error: {ex.Message}");
             Logger.Error(ex, "Unexpected network error");
         }
         finally
         {
-            Disconnect();
-            Disconnected?.Invoke();
+            this.Disconnect();
+            this.Disconnected?.Invoke();
             Logger.Information("Disconnected from server");
         }
     }
@@ -154,9 +154,9 @@ public sealed class GameClient : IDisposable
     private async Task HandleMoveRequestAsync(
         byte[] payload, CancellationToken cancellationToken)
     {
-        if (_localBot == null)
+        if (this._localBot == null)
         {
-            await SendErrorAsync("Bot not initialized", cancellationToken);
+            await this.SendErrorAsync("Bot not initialized", cancellationToken);
             Logger.Warning("Move requested before bot initialization");
             return;
         }
@@ -188,11 +188,11 @@ public sealed class GameClient : IDisposable
         string resultMove;
         try
         {
-            resultMove = _localBot.GetMove(moves);
+            resultMove = this._localBot.GetMove(moves);
         }
         catch (Exception ex)
         {
-            await SendErrorAsync(
+            await this.SendErrorAsync(
                 $"Bot execution error: {ex.Message}", cancellationToken);
             Logger.Error(ex, "Bot execution failed when generating move");
             return;
@@ -200,7 +200,7 @@ public sealed class GameClient : IDisposable
 
         if (string.IsNullOrWhiteSpace(resultMove))
         {
-            await SendErrorAsync(
+            await this.SendErrorAsync(
                 "Bot returned empty move", cancellationToken);
             Logger.Warning("Bot returned an empty move");
             return;
@@ -208,7 +208,7 @@ public sealed class GameClient : IDisposable
 
         var response = NetworkMessage.CreateText(
             MessageType.ClientMoveResponse, resultMove.Trim());
-        await SendAsync(response, cancellationToken);
+        await this.SendAsync(response, cancellationToken);
         Logger.Debug("Sent move response {Move}", resultMove.Trim());
     }
 
@@ -264,29 +264,29 @@ public sealed class GameClient : IDisposable
 
     private async Task SendErrorAsync(string error, CancellationToken cancellationToken)
     {
-        ErrorReceived?.Invoke(error);
+        this.ErrorReceived?.Invoke(error);
         var message = NetworkMessage.CreateText(MessageType.ClientDisconnect, error);
-        await SendAsync(message, cancellationToken);
+        await this.SendAsync(message, cancellationToken);
         Logger.Error("Client error reported to server: {Error}", error);
     }
 
     private async Task SendAsync(NetworkMessage message, CancellationToken cancellationToken)
     {
-        if (_stream == null)
+        if (this._stream == null)
         {
             return;
         }
 
         var bytes = message.Serialize();
-        await _sendLock.WaitAsync(cancellationToken);
+        await this._sendLock.WaitAsync(cancellationToken);
         try
         {
-            await _stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
-            await _stream.FlushAsync(cancellationToken);
+            await this._stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
+            await this._stream.FlushAsync(cancellationToken);
         }
         finally
         {
-            _sendLock.Release();
+            this._sendLock.Release();
         }
     }
 
@@ -294,7 +294,7 @@ public sealed class GameClient : IDisposable
     {
         try
         {
-            _tcpClient?.Close();
+            this._tcpClient?.Close();
         }
         catch (Exception ex)
         {
@@ -306,7 +306,7 @@ public sealed class GameClient : IDisposable
     {
         try
         {
-            _sendLock.Dispose();
+            this._sendLock.Dispose();
         }
         catch (Exception ex)
         {
@@ -315,7 +315,7 @@ public sealed class GameClient : IDisposable
 
         try
         {
-            _stream?.Dispose();
+            this._stream?.Dispose();
         }
         catch (Exception ex)
         {
@@ -324,7 +324,7 @@ public sealed class GameClient : IDisposable
 
         try
         {
-            _tcpClient?.Dispose();
+            this._tcpClient?.Dispose();
         }
         catch (Exception ex)
         {

@@ -7,24 +7,24 @@ public class Position
 
     public Position()
     {
-        _board = new Board();
-        _sideToMove = Color.White;
+        this._board = new Board();
+        this._sideToMove = Color.White;
     }
 
     public Position(Position other)
     {
-        _board = new Board(other._board);
-        _sideToMove = other._sideToMove;
+        this._board = new Board(other._board);
+        this._sideToMove = other._sideToMove;
     }
 
     public bool IsLegal(Move move)
     {
-        if (move.Piece.ColorOfPiece() != _sideToMove)
+        if (move.Piece.ColorOfPiece() != this._sideToMove)
         {
             return false;
         }
 
-        if ((_board.Occupied() & move.Square.ToBitboard()) != 0)
+        if ((this._board.Occupied() & move.Square.ToBitboard()) != 0)
         {
             return false;
         }
@@ -35,7 +35,7 @@ public class Position
             return false;
         }
 
-        if (!HasPiecesLeft(move.Piece))
+        if (!this.HasPiecesLeft(move.Piece))
         {
             return false;
         }
@@ -48,8 +48,8 @@ public class Position
         Color color = piece.ColorOfPiece();
         PieceType type = piece.TypeOfPiece();
 
-        ulong piecesOfType = _board.GetPiecesBitboard(type);
-        ulong piecesOfColor = _board.GetColorBitboard(color);
+        ulong piecesOfType = this._board.GetPiecesBitboard(type);
+        ulong piecesOfColor = this._board.GetColorBitboard(color);
         ulong piecesOfThisKind = piecesOfType & piecesOfColor;
         int count = Bitboard.PopCount(piecesOfThisKind);
 
@@ -73,13 +73,13 @@ public class Position
 
     public void DoMove(Move move)
     {
-        if (!IsLegal(move))
+        if (!this.IsLegal(move))
         {
             throw new InvalidOperationException($"Illegal move: {move}");
         }
 
-        _board.PlacePiece(move.Piece, move.Square);
-        _sideToMove = _sideToMove == Color.White ? Color.Black : Color.White;
+        this._board.PlacePiece(move.Piece, move.Square);
+        this._sideToMove = this._sideToMove == Color.White ? Color.Black : Color.White;
     }
 
     public (int whiteScore, int blackScore) CalculateScore()
@@ -87,7 +87,7 @@ public class Position
         int whiteScore = 0;
         int blackScore = 0;
 
-        ulong occupied = _board.Occupied();
+        ulong occupied = this._board.Occupied();
 
         for (Square sq = Square.A1; sq < Square.SQ_COUNT; sq++)
         {
@@ -97,12 +97,12 @@ public class Position
                 continue;
             }
 
-            Piece piece = _board.PieceAt(sq);
+            Piece piece = this._board.PieceAt(sq);
 
             Color color = piece.ColorOfPiece();
             PieceType type = piece.TypeOfPiece();
             int value = GetPieceValue(type);
-            int attacks = _board.CountAttacksOn(sq);
+            int attacks = this._board.CountAttacksOn(sq);
             int points = value * attacks;
 
             if (color == Color.White)
@@ -132,5 +132,5 @@ public class Position
         };
     }
 
-    public Board GetBoard() => _board;
+    public Board GetBoard() => this._board;
 }
