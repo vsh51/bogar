@@ -20,17 +20,25 @@ public class Position
     public bool IsLegal(Move move)
     {
         if (move.Piece.ColorOfPiece() != _sideToMove)
+        {
             return false;
+        }
 
         if ((_board.Occupied() & move.Square.ToBitboard()) != 0)
+        {
             return false;
+        }
 
         PieceType type = move.Piece.TypeOfPiece();
         if (type == PieceType.NoPieceType)
+        {
             return false;
+        }
 
         if (!HasPiecesLeft(move.Piece))
+        {
             return false;
+        }
 
         return true;
     }
@@ -66,7 +74,9 @@ public class Position
     public void DoMove(Move move)
     {
         if (!IsLegal(move))
+        {
             throw new InvalidOperationException($"Illegal move: {move}");
+        }
 
         _board.PlacePiece(move.Piece, move.Square);
         _sideToMove = _sideToMove == Color.White ? Color.Black : Color.White;
@@ -83,7 +93,9 @@ public class Position
         {
             ulong sqBitboard = sq.ToBitboard();
             if ((occupied & sqBitboard) == 0)
+            {
                 continue;
+            }
 
             Piece piece = _board.PieceAt(sq);
 

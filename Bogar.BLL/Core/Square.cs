@@ -21,7 +21,9 @@ public static class SquareExtensions
     public static ulong ToBitboard(this Square square)
     {
         if (square < 0 || square >= Square.SQ_COUNT)
+        {
             return 0UL;
+        }
 
         return 1UL << (int)square;
     }
@@ -29,7 +31,9 @@ public static class SquareExtensions
     public static Square ToSquare(this ulong bitboard)
     {
         if (bitboard == 0 || (bitboard & (bitboard - 1)) != 0)
+        {
             return Square.SQ_NONE;
+        }
 
         int index = Bitboard.BitScanForward(bitboard);
         return (Square)index;
@@ -44,7 +48,9 @@ public static class SquareExtensions
     public static string ToAlgebraic(this Square square)
     {
         if (square < 0 || square >= Square.SQ_COUNT)
+        {
             return "none";
+        }
 
         char file = (char)('a' + square.GetFile());
         char rank = (char)('1' + square.GetRank());
@@ -54,13 +60,17 @@ public static class SquareExtensions
     public static Square Parse(string notation)
     {
         if (string.IsNullOrWhiteSpace(notation) || notation.Length != 2)
+        {
             return Square.SQ_NONE;
+        }
 
         char fileChar = char.ToLowerInvariant(notation[0]);
         char rankChar = notation[1];
 
         if (fileChar is < 'a' or > 'h' || rankChar is < '1' or > '8')
+        {
             return Square.SQ_NONE;
+        }
 
         int file = fileChar - 'a';
         int rank = rankChar - '1';

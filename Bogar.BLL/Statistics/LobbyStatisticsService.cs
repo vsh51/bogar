@@ -30,7 +30,9 @@ public sealed class LobbyStatisticsService : IDisposable
     public async Task RecordMatchAsync(MatchResult result, CancellationToken cancellationToken = default)
     {
         if (result == null)
+        {
             throw new ArgumentNullException(nameof(result));
+        }
 
         try
         {

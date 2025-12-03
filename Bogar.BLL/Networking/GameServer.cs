@@ -45,7 +45,9 @@ public sealed class GameServer : IDisposable
     public async Task StartAsync()
     {
         if (_isRunning)
+        {
             return;
+        }
 
         _listener.Start();
         _isRunning = true;
@@ -58,7 +60,9 @@ public sealed class GameServer : IDisposable
     public void Stop()
     {
         if (!_isRunning)
+        {
             return;
+        }
 
         _isRunning = false;
         _cancellationTokenSource.Cancel();
@@ -356,7 +360,9 @@ public sealed class GameServer : IDisposable
             while (!cancellationToken.IsCancellationRequested)
             {
                 if (!IsClientConnected(client.TcpClient))
+                {
                     break;
+                }
                 await Task.Delay(1000, cancellationToken);
             }
         }
@@ -371,11 +377,15 @@ public sealed class GameServer : IDisposable
         try
         {
             if (!tcpClient.Connected)
+            {
                 return false;
+            }
 
             var socket = tcpClient.Client;
             if (socket == null)
+            {
                 return false;
+            }
 
             return !(socket.Poll(
                 0, SelectMode.SelectRead) && socket.Available == 0);
@@ -541,7 +551,9 @@ internal sealed class MatchController : IDisposable
     public bool TryPause()
     {
         if (IsPaused)
+        {
             return false;
+        }
 
         IsPaused = true;
         _resumeEvent.Reset();
@@ -551,7 +563,9 @@ internal sealed class MatchController : IDisposable
     public bool TryResume()
     {
         if (!IsPaused)
+        {
             return false;
+        }
 
         IsPaused = false;
         _resumeEvent.Set();

@@ -215,13 +215,17 @@ public sealed class GameClient : IDisposable
     {
         move = default;
         if (string.IsNullOrWhiteSpace(moveString) || moveString.Length < 3)
+        {
             return false;
+        }
 
         char pieceChar = moveString[0];
         string squareString = moveString.Substring(1).ToUpperInvariant();
 
         if (!Enum.TryParse<Square>(squareString, out var square))
+        {
             return false;
+        }
 
         Piece piece = color switch
         {
@@ -248,7 +252,9 @@ public sealed class GameClient : IDisposable
         };
 
         if (piece == Piece.NoPiece)
+        {
             return false;
+        }
 
         move = new Move(piece, square);
         return true;
@@ -265,7 +271,9 @@ public sealed class GameClient : IDisposable
     private async Task SendAsync(NetworkMessage message, CancellationToken cancellationToken)
     {
         if (_stream == null)
+        {
             return;
+        }
 
         var bytes = message.Serialize();
         await _sendLock.WaitAsync(cancellationToken);

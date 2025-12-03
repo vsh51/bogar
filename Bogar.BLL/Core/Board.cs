@@ -23,12 +23,16 @@ public class Board
     public Piece PieceAt(Square square)
     {
         if (square < 0 || square >= Square.SQ_COUNT)
+        {
             return Piece.NoPiece;
+        }
 
         ulong mask = square.ToBitboard();
         
         if ((Occupied() & mask) == 0)
+        {
             return Piece.NoPiece;
+        }
 
         Color color = (_colors[(int)Color.White] & mask) != 0 ? Color.White : Color.Black;
         
@@ -53,7 +57,9 @@ public class Board
     public void PlacePiece(Piece piece, Square square)
     {
         if (piece == Piece.NoPiece || square < 0 || square >= Square.SQ_COUNT)
+        {
             return;
+        }
 
         ulong mask = square.ToBitboard();
         Color color = piece.ColorOfPiece();
@@ -66,22 +72,30 @@ public class Board
     public void RemovePiece(Square square)
     {
         if (square < 0 || square >= Square.SQ_COUNT)
+        {
             return;
+        }
 
         ulong mask = ~square.ToBitboard();
         
         for (int i = 0; i < _pieces.Length; i++)
+        {
             _pieces[i] &= mask;
+        }
         
         for (int i = 0; i < _colors.Length; i++)
+        {
             _colors[i] &= mask;
+        }
     }
 
     public int CountAttacksOn(Square target)
     {
         Piece targetPiece = PieceAt(target);
         if (targetPiece == Piece.NoPiece)
+        {
             return 0;
+        }
 
         Color targetColor = targetPiece.ColorOfPiece();
         Color enemyColor = targetColor == Color.White ? Color.Black : Color.White;

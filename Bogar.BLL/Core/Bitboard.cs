@@ -20,7 +20,9 @@ public static class Bitboard
     public static int BitScanForward(ulong bitboard)
     {
         if (bitboard == EMPTY)
+        {
             return -1;
+        }
 
         ulong debruijn = 0x03f79d71b4cb0a89UL;
         return (int)BitScanIndexes[
@@ -31,7 +33,9 @@ public static class Bitboard
     public static int BitScanReverse(ulong bitboard)
     {
         if (bitboard == EMPTY)
+        {
             return -1;
+        }
 
         bitboard |= bitboard >> 1;
         bitboard |= bitboard >> 2;

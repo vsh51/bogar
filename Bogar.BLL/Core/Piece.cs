@@ -46,7 +46,9 @@ public static class PieceExtensions
     public static Color ColorOfPiece(this Piece piece)
     {
         if (piece == Piece.NoPiece)
+        {
             return Color.White;
+        }
 
         return (int)piece > 8 ? Color.Black : Color.White;
     }
@@ -54,7 +56,9 @@ public static class PieceExtensions
     public static PieceType TypeOfPiece(this Piece piece)
     {
         if (piece == Piece.NoPiece)
+        {
             return PieceType.NoPieceType;
+        }
 
         return (PieceType)((int)piece & 7);
     }
@@ -62,7 +66,9 @@ public static class PieceExtensions
     public static Piece MakePiece(Color color, PieceType type)
     {
         if (type == PieceType.NoPieceType)
+        {
             return Piece.NoPiece;
+        }
 
         return (Piece)(((int)color << 3) + (int)type);
     }
