@@ -25,6 +25,11 @@ public class Game
         return score.whiteScore - score.blackScore;
     }
 
+    public (int whiteScore, int blackScore) GetScoreBreakdown()
+    {
+        return _position.CalculateScore();
+    }
+
     public void DoNextMove()
     {
         if (Moves.Count >= 32)

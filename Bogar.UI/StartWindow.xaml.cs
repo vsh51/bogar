@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using Microsoft.Win32;
+using Serilog;
 
 namespace Bogar.UI
 {
@@ -12,6 +13,7 @@ namespace Bogar.UI
         public StartWindow()
         {
             InitializeComponent();
+            Log.Information("Start window opened");
         }
 
         private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -35,6 +37,7 @@ namespace Bogar.UI
                 whiteBotPath = dialog.FileName;
                 WhiteBotPathTextBox.Text = System.IO.Path.GetFileName(whiteBotPath);
                 UpdateStartLocalGameButtonState();
+                Log.Information("White bot selected: {Path}", whiteBotPath);
             }
         }
 
@@ -51,6 +54,7 @@ namespace Bogar.UI
                 blackBotPath = dialog.FileName;
                 BlackBotPathTextBox.Text = System.IO.Path.GetFileName(blackBotPath);
                 UpdateStartLocalGameButtonState();
+                Log.Information("Black bot selected: {Path}", blackBotPath);
             }
         }
 
@@ -62,12 +66,16 @@ namespace Bogar.UI
         private void StartLocalGameButton_Click(object sender, RoutedEventArgs e)
         {
             var matchWindow = new MatchWindow(whiteBotPath, blackBotPath);
+            Log.Information("Starting local match (White: {WhiteBot}, Black: {BlackBot})",
+                string.IsNullOrEmpty(whiteBotPath) ? "None" : whiteBotPath,
+                string.IsNullOrEmpty(blackBotPath) ? "None" : blackBotPath);
             WindowNavigationHelper.Replace(this, matchWindow);
         }
 
         private void HostTournamentButton_Click(object sender, RoutedEventArgs e)
         {
             var createLobbyWindow = new CreateLobbyWindow();
+            Log.Information("Navigating to lobby creation window");
             WindowNavigationHelper.Replace(this, createLobbyWindow);
         }
 
@@ -75,6 +83,7 @@ namespace Bogar.UI
         private void JoinLobbyButton_Click(object sender, RoutedEventArgs e)
         {
             var joinLobbyWindow = new JoinLobbyWindow();
+            Log.Information("Navigating to join lobby window");
             WindowNavigationHelper.Replace(this, joinLobbyWindow);
         }
 
@@ -90,6 +99,7 @@ namespace Bogar.UI
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
+            Log.Information("Start window closed by user");
             this.Close();
         }
 

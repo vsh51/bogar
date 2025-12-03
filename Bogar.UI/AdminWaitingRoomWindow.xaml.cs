@@ -2,12 +2,15 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Bogar.BLL.Networking;
 using Bogar.BLL.Core;
+using Bogar.BLL.Networking;
+using Bogar.BLL.Statistics;
+using Serilog;
 
 namespace Bogar.UI
 {
@@ -19,16 +22,25 @@ namespace Bogar.UI
         private readonly ObservableCollection<string> _logMessages = new();
         private readonly ObservableCollection<ClientListItem> _clients = new();
         private readonly DispatcherTimer _refreshTimer;
+        private readonly LobbyStatisticsService _statisticsService;
         private AdminMatchWindow? _matchWindow;
         private bool _isRefreshingClients;
+
+        public static readonly RoutedUICommand KickPlayerCommand = new RoutedUICommand(
+            "Kick Player",
+            "KickPlayer",
+            typeof(AdminWaitingRoomWindow));
 
         public AdminWaitingRoomWindow(GameServer server, string lobbyName)
         {
             InitializeComponent();
 
+            CommandBindings.Add(new CommandBinding(KickPlayerCommand, OnKickPlayerCommandExecuted, CanExecuteKickPlayerCommand));
+
             _server = server;
             _lobbyName = lobbyName;
             _hostIp = GetLocalIPAddress();
+            _statisticsService = new LobbyStatisticsService(lobbyName);
 
             LobbyNameText.Text = $"Lobby: {_lobbyName}";
             LobbyIpText.Text = $"IP: {_hostIp}";
@@ -42,6 +54,7 @@ namespace Bogar.UI
             _server.ClientDisconnected += OnClientChanged;
             _server.GameStarted += OnGameStarted;
             _server.GameEnded += OnGameEnded;
+            _server.MatchCompleted += OnMatchCompleted;
 
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
             _refreshTimer.Tick += (s, e) => RefreshClients();
@@ -49,6 +62,7 @@ namespace Bogar.UI
 
             _logMessages.Add("Waiting for clients to connect...");
             RefreshClients();
+            Log.Information("Admin waiting room started for lobby {Lobby} at {Ip}:{Port}", _lobbyName, _hostIp, _server.Port);
         }
 
         private void OnServerLog(string message)
@@ -59,6 +73,7 @@ namespace Bogar.UI
                 if (_logMessages.Count > 200)
                     _logMessages.RemoveAt(0);
             });
+            Log.Information("SERVER: {Message}", message);
         }
 
         private void OnClientChanged(ConnectedClient client)
@@ -68,6 +83,7 @@ namespace Bogar.UI
                 RefreshClients();
                 _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Client {(client.TcpClient.Connected ? "connected" : "disconnected")}: {client.Nickname}");
             });
+            Log.Information("Client {Status}: {Nickname}", client.TcpClient.Connected ? "connected" : "disconnected", client.Nickname);
         }
 
         private void OnGameStarted(ConnectedClient white, ConnectedClient black)
@@ -77,21 +93,24 @@ namespace Bogar.UI
                 _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Game started: {white.Nickname} vs {black.Nickname}");
                 RefreshClients();
             });
+            Log.Information("Game started: {White} vs {Black}", white.Nickname, black.Nickname);
         }
 
         private void OnGameEnded(ConnectedClient white, ConnectedClient black, Color? winner)
         {
+            string result = winner switch
+            {
+                Color.White => $"{white.Nickname} wins",
+                Color.Black => $"{black.Nickname} wins",
+                _ => "Draw"
+            };
+
             Dispatcher.Invoke(() =>
             {
-                string result = winner switch
-                {
-                    Color.White => $"{white.Nickname} wins",
-                    Color.Black => $"{black.Nickname} wins",
-                    _ => "Draw"
-                };
                 _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Game ended: {result}");
                 RefreshClients();
             });
+            Log.Information("Game ended between {White} and {Black}: {Result}", white.Nickname, black.Nickname, result);
         }
 
         private void RefreshClients()
@@ -137,6 +156,19 @@ namespace Bogar.UI
             UpdateStartMatchButtonState();
         }
 
+        private void OnKickPlayerCommandExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Parameter is ClientListItem item)
+            {
+                TryKickClient(item.Client.Id, item.Client.Nickname);
+            }
+        }
+
+        private void CanExecuteKickPlayerCommand(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = e.Parameter is ClientListItem;
+        }
+
         private void UpdateStartMatchButtonState()
         {
             var selectable = ClientsListBox.SelectedItems
@@ -163,6 +195,7 @@ namespace Bogar.UI
             if (_server.TryStartMatch(client1.Id, client2.Id, out var error))
             {
                 _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Match queued: {client1.Nickname} vs {client2.Nickname}");
+                Log.Information("Match queued: {White} vs {Black}", client1.Nickname, client2.Nickname);
                 ClientsListBox.UnselectAll();
                 _matchWindow?.Close();
                 _matchWindow = new AdminMatchWindow(
@@ -172,22 +205,67 @@ namespace Bogar.UI
                     client1.Nickname,
                     client2.Nickname,
                     _lobbyName,
-                    _hostIp);
+                    _hostIp,
+                    _statisticsService,
+                    this
+                );
                 WindowNavigationHelper.AlignTo(this, _matchWindow, offsetX: 32, offsetY: 32);
                 _matchWindow.Show();
+                this.Hide();
             }
             else if (!string.IsNullOrEmpty(error))
             {
+                Log.Warning("Failed to start match {White} vs {Black}: {Error}", client1.Nickname, client2.Nickname, error);
                 MessageBox.Show(error, "Cannot start match", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
             RefreshClients();
         }
 
+        private void TryKickClient(Guid clientId, string nickname)
+        {
+            var confirm = MessageBox.Show(
+                $"Kick player '{nickname}'?",
+                "Kick player",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes)
+                return;
+
+            if (_server.TryKickClient(clientId, out var error))
+            {
+                _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Player kicked: {nickname}");
+                Log.Information("Player kicked: {Nickname}", nickname);
+                RefreshClients();
+            }
+            else if (!string.IsNullOrEmpty(error))
+            {
+                Log.Warning("Failed to kick player {Nickname}: {Error}", nickname, error);
+                MessageBox.Show(error, "Kick player", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                Log.Warning("Unable to kick player {Nickname} due to unknown server response", nickname);
+                MessageBox.Show(
+                    "Unable to kick the selected player.",
+                    "Kick player",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+        }
+
         private void DeleteLobby_Click(object sender, RoutedEventArgs e)
+        {
+            Log.Information("Lobby {Lobby} deletion requested", _lobbyName);
+            NavigateToStart();
+        }
+
+        public void NavigateToStart()
         {
             var startWindow = new StartWindow();
             WindowNavigationHelper.Replace(this, startWindow);
+            Log.Information("Returning to start window from lobby {Lobby}", _lobbyName);
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -222,9 +300,35 @@ namespace Bogar.UI
             _server.ClientDisconnected -= OnClientChanged;
             _server.GameStarted -= OnGameStarted;
             _server.GameEnded -= OnGameEnded;
+            _server.MatchCompleted -= OnMatchCompleted;
 
             _matchWindow?.Close();
             _server.Dispose();
+            _statisticsService.Dispose();
+            Log.Information("Admin waiting room for lobby {Lobby} closed", _lobbyName);
+        }
+
+        private void OnMatchCompleted(MatchResult result)
+        {
+            Log.Information("Persisting match result for {White} vs {Black}", result.WhiteNickname, result.BlackNickname);
+            _ = PersistMatchAsync(result);
+        }
+
+        private async Task PersistMatchAsync(MatchResult result)
+        {
+            try
+            {
+                await _statisticsService.RecordMatchAsync(result);
+                Log.Information("Match persisted for {White} vs {Black}", result.WhiteNickname, result.BlackNickname);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to store match result for {White} vs {Black}", result.WhiteNickname, result.BlackNickname);
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Failed to store match: {ex.Message}");
+                });
+            }
         }
 
         private sealed class ClientListItem
@@ -252,14 +356,13 @@ namespace Bogar.UI
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            var startWindow = new StartWindow();
-            startWindow.Show();
-            this.Close();
+            NavigateToStart();
         }
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
             var createLobbyWindow = new CreateLobbyWindow();
             createLobbyWindow.Show();
+            Log.Information("Admin waiting room back navigation triggered");
             this.Close();
         }
 

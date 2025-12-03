@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 using Bogar.BLL.Networking;
+using Serilog;
 
 namespace Bogar.UI
 {
@@ -28,13 +29,17 @@ namespace Bogar.UI
         private async void JoinLobby_Click(object sender, RoutedEventArgs e)
         {
             if (!ValidateInputs(out var port))
+            {
+                Log.Warning("Join lobby validation failed");
                 return;
+            }
 
             JoinLobbyButton.IsEnabled = false;
 
             try
             {
                 var client = new GameClient();
+                Log.Information("Attempting to join lobby {Lobby} at {Ip}:{Port} as {User}", LobbyNameTextBox.Text.Trim(), LobbyIpTextBox.Text.Trim(), port, UserNameTextBox.Text.Trim());
                 bool connected = await client.ConnectAsync(
                     LobbyIpTextBox.Text.Trim(),
                     port,
@@ -50,16 +55,19 @@ namespace Bogar.UI
                         port,
                         UserNameTextBox.Text.Trim());
                     WindowNavigationHelper.Replace(this, waitingRoom);
+                    Log.Information("Joined lobby {Lobby} at {Ip}:{Port} as {User}", LobbyNameTextBox.Text.Trim(), LobbyIpTextBox.Text.Trim(), port, UserNameTextBox.Text.Trim());
                 }
                 else
                 {
                     client.Dispose();
+                    Log.Warning("Failed to join lobby {Lobby} at {Ip}:{Port}", LobbyNameTextBox.Text.Trim(), LobbyIpTextBox.Text.Trim(), port);
                     MessageBox.Show("Failed to connect to server.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     JoinLobbyButton.IsEnabled = true;
                 }
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Connection error while joining lobby {Lobby} at {Ip}:{Port}", LobbyNameTextBox.Text.Trim(), LobbyIpTextBox.Text.Trim(), port);
                 MessageBox.Show($"Connection error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 JoinLobbyButton.IsEnabled = true;
             }
@@ -145,6 +153,7 @@ namespace Bogar.UI
         {
             var startWindow = new StartWindow();
             startWindow.Show();
+            Log.Information("Join lobby window closed");
             this.Close();
         }
 
@@ -152,6 +161,7 @@ namespace Bogar.UI
         {
             var startWindow = new StartWindow();
             startWindow.Show();
+            Log.Information("Join lobby window back navigation triggered");
             this.Close();
         }
     }

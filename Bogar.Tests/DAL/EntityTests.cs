@@ -71,6 +71,7 @@ public class GameDbContextTests : IDisposable
 
         var match = new Match
         {
+            Lobby = lobby,
             WhiteBot = whiteBot,
             BlackBot = blackBot,
             Status = MatchStatus.InProgress,
@@ -86,6 +87,7 @@ public class GameDbContextTests : IDisposable
         _context.ChangeTracker.Clear();
 
         var userToDelete = await _context.Users.FindAsync(whiteBot.Id);
+	Assert.NotNull(userToDelete);
         _context.Users.Remove(userToDelete);
 
         var exception = await Assert.ThrowsAsync<DbUpdateException>(async () =>
@@ -105,6 +107,7 @@ public class GameDbContextTests : IDisposable
         var u2 = new User { Username = "P2", BotName = "B2", BotFileHash = "12397d86gv", Lobby = lobby };
         var match = new Match
         {
+            Lobby = lobby,
             WhiteBot = u1,
             BlackBot = u2,
             Status = MatchStatus.InProgress,
@@ -120,11 +123,12 @@ public class GameDbContextTests : IDisposable
         using var command = _connection.CreateCommand();
         command.CommandText = $"SELECT status FROM Matches WHERE Id = {match.Id}";
 
-        var rawStatusValue = (string)await command.ExecuteScalarAsync();
+        var rawStatusValue = (string?)await command.ExecuteScalarAsync();
 
         Assert.Equal("InProgress", rawStatusValue);
 
         var matchFromDb = await _context.Matches.FindAsync(match.Id);
+	Assert.NotNull(matchFromDb);
         Assert.Equal(MatchStatus.InProgress, matchFromDb.Status);
     }
 }
