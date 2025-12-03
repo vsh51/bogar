@@ -10,6 +10,7 @@ using System.Windows.Threading;
 using Bogar.BLL.Core;
 using Bogar.BLL.Networking;
 using Bogar.BLL.Statistics;
+using Serilog;
 
 namespace Bogar.UI
 {
@@ -61,6 +62,7 @@ namespace Bogar.UI
 
             _logMessages.Add("Waiting for clients to connect...");
             RefreshClients();
+            Log.Information("Admin waiting room started for lobby {Lobby} at {Ip}:{Port}", _lobbyName, _hostIp, _server.Port);
         }
 
         private void OnServerLog(string message)
@@ -71,6 +73,7 @@ namespace Bogar.UI
                 if (_logMessages.Count > 200)
                     _logMessages.RemoveAt(0);
             });
+            Log.Information("SERVER: {Message}", message);
         }
 
         private void OnClientChanged(ConnectedClient client)
@@ -80,6 +83,7 @@ namespace Bogar.UI
                 RefreshClients();
                 _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Client {(client.TcpClient.Connected ? "connected" : "disconnected")}: {client.Nickname}");
             });
+            Log.Information("Client {Status}: {Nickname}", client.TcpClient.Connected ? "connected" : "disconnected", client.Nickname);
         }
 
         private void OnGameStarted(ConnectedClient white, ConnectedClient black)
@@ -89,21 +93,24 @@ namespace Bogar.UI
                 _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Game started: {white.Nickname} vs {black.Nickname}");
                 RefreshClients();
             });
+            Log.Information("Game started: {White} vs {Black}", white.Nickname, black.Nickname);
         }
 
         private void OnGameEnded(ConnectedClient white, ConnectedClient black, Color? winner)
         {
+            string result = winner switch
+            {
+                Color.White => $"{white.Nickname} wins",
+                Color.Black => $"{black.Nickname} wins",
+                _ => "Draw"
+            };
+
             Dispatcher.Invoke(() =>
             {
-                string result = winner switch
-                {
-                    Color.White => $"{white.Nickname} wins",
-                    Color.Black => $"{black.Nickname} wins",
-                    _ => "Draw"
-                };
                 _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Game ended: {result}");
                 RefreshClients();
             });
+            Log.Information("Game ended between {White} and {Black}: {Result}", white.Nickname, black.Nickname, result);
         }
 
         private void RefreshClients()
@@ -188,6 +195,7 @@ namespace Bogar.UI
             if (_server.TryStartMatch(client1.Id, client2.Id, out var error))
             {
                 _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Match queued: {client1.Nickname} vs {client2.Nickname}");
+                Log.Information("Match queued: {White} vs {Black}", client1.Nickname, client2.Nickname);
                 ClientsListBox.UnselectAll();
                 _matchWindow?.Close();
                 _matchWindow = new AdminMatchWindow(
@@ -207,6 +215,7 @@ namespace Bogar.UI
             }
             else if (!string.IsNullOrEmpty(error))
             {
+                Log.Warning("Failed to start match {White} vs {Black}: {Error}", client1.Nickname, client2.Nickname, error);
                 MessageBox.Show(error, "Cannot start match", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
@@ -227,14 +236,17 @@ namespace Bogar.UI
             if (_server.TryKickClient(clientId, out var error))
             {
                 _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Player kicked: {nickname}");
+                Log.Information("Player kicked: {Nickname}", nickname);
                 RefreshClients();
             }
             else if (!string.IsNullOrEmpty(error))
             {
+                Log.Warning("Failed to kick player {Nickname}: {Error}", nickname, error);
                 MessageBox.Show(error, "Kick player", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
+                Log.Warning("Unable to kick player {Nickname} due to unknown server response", nickname);
                 MessageBox.Show(
                     "Unable to kick the selected player.",
                     "Kick player",
@@ -245,6 +257,7 @@ namespace Bogar.UI
 
         private void DeleteLobby_Click(object sender, RoutedEventArgs e)
         {
+            Log.Information("Lobby {Lobby} deletion requested", _lobbyName);
             NavigateToStart();
         }
 
@@ -252,6 +265,7 @@ namespace Bogar.UI
         {
             var startWindow = new StartWindow();
             WindowNavigationHelper.Replace(this, startWindow);
+            Log.Information("Returning to start window from lobby {Lobby}", _lobbyName);
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -291,10 +305,12 @@ namespace Bogar.UI
             _matchWindow?.Close();
             _server.Dispose();
             _statisticsService.Dispose();
+            Log.Information("Admin waiting room for lobby {Lobby} closed", _lobbyName);
         }
 
         private void OnMatchCompleted(MatchResult result)
         {
+            Log.Information("Persisting match result for {White} vs {Black}", result.WhiteNickname, result.BlackNickname);
             _ = PersistMatchAsync(result);
         }
 
@@ -303,9 +319,11 @@ namespace Bogar.UI
             try
             {
                 await _statisticsService.RecordMatchAsync(result);
+                Log.Information("Match persisted for {White} vs {Black}", result.WhiteNickname, result.BlackNickname);
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Failed to store match result for {White} vs {Black}", result.WhiteNickname, result.BlackNickname);
                 await Dispatcher.InvokeAsync(() =>
                 {
                     _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] Failed to store match: {ex.Message}");
@@ -344,10 +362,9 @@ namespace Bogar.UI
         {
             var createLobbyWindow = new CreateLobbyWindow();
             createLobbyWindow.Show();
+            Log.Information("Admin waiting room back navigation triggered");
             this.Close();
         }
 
     }
 }
-
-

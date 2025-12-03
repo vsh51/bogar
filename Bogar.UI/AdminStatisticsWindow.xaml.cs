@@ -1,4 +1,5 @@
 ﻿using Bogar.BLL.Statistics;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -38,11 +39,13 @@ namespace Bogar.UI
             CommandBindings.Add(new CommandBinding(DeleteMatchCommand, OnDeleteMatchCommandExecuted, OnDeleteMatchCommandCanExecute));
 
             Loaded += async (_, _) => await RefreshAsync();
+            Log.Information("Statistics window opened for lobby {Lobby}", lobbyName);
         }
 
         private async Task RefreshAsync()
         {
             SetLoading(true);
+            Log.Information("Refreshing statistics for lobby {Lobby}", _lobbyName);
             try
             {
                 var historyTask = _statisticsService.GetMatchHistoryAsync();
@@ -52,9 +55,11 @@ namespace Bogar.UI
 
                 UpdateMatches(historyTask.Result);
                 UpdateLobbyOverview(snapshotTask.Result);
+                Log.Information("Statistics refresh completed for lobby {Lobby}", _lobbyName);
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Unable to load statistics for lobby {Lobby}", _lobbyName);
                 MessageBox.Show($"Unable to load statistics: {ex.Message}",
                     "Statistics", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
@@ -157,11 +162,13 @@ namespace Bogar.UI
 
             try
             {
+                Log.Information("Deleting match #{MatchId} from lobby {Lobby}", row.MatchId, _lobbyName);
                 await _statisticsService.DeleteMatchAsync(row.MatchId);
                 await RefreshAsync();
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Failed to delete match #{MatchId} from lobby {Lobby}", row.MatchId, _lobbyName);
                 MessageBox.Show($"Failed to delete match: {ex.Message}",
                     "Delete match",
                     MessageBoxButton.OK,

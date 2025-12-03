@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Bogar.UI.Chess;
 using Bogar.BLL.Core;
+using Serilog;
 using BllColor = Bogar.BLL.Core.Color;
 using BllPieceType = Bogar.BLL.Core.PieceType;
 using BllPiece = Bogar.BLL.Core.Piece;
@@ -58,6 +59,7 @@ namespace Bogar.UI
 
             StartMatchButton.Visibility = Visibility.Visible;
             StopMatchButton.Visibility = Visibility.Visible;
+            Log.Information("Local match window created. White bot: {WhiteBot}, Black bot: {BlackBot}", whiteBotPath, blackBotPath);
         }
 
         private void SetupGameManager()
@@ -328,6 +330,7 @@ namespace Bogar.UI
             if (string.IsNullOrEmpty(blackBotPath))
             {
                 MessageBox.Show("Please select a black bot first.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Log.Warning("Attempted to start match without selecting black bot");
                 return;
             }
 
@@ -343,6 +346,7 @@ namespace Bogar.UI
             WinnerTextBlock.Text = string.Empty;
 
             gameManager.StartGame(whiteBotPath, blackBotPath);
+            Log.Information("Local match started");
 
             StartMatchButton.IsEnabled = false;
             StopMatchButton.IsEnabled = true;
@@ -351,6 +355,7 @@ namespace Bogar.UI
         private void StopMatchButton_Click(object sender, RoutedEventArgs e)
         {
             gameManager.StopGame();
+            Log.Information("Local match stopped by user");
 
             StartMatchButton.IsEnabled = true;
             StopMatchButton.IsEnabled = false;

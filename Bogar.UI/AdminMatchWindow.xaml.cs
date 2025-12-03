@@ -15,6 +15,7 @@ using BllPiece = Bogar.BLL.Core.Piece;
 using BllPieceType = Bogar.BLL.Core.PieceType;
 using BllSquare = Bogar.BLL.Core.Square;
 using BllColor = Bogar.BLL.Core.Color;
+using Serilog;
 
 namespace Bogar.UI
 {
@@ -105,6 +106,7 @@ namespace Bogar.UI
             _server.GameStarted += OnGameStarted;
             _server.MoveExecuted += OnMoveExecuted;
             _server.GameEnded += OnGameEnded;
+            Log.Information("Admin match window opened for lobby {Lobby}. Current match {White} vs {Black}", _lobbyName, whiteName, blackName);
         }
 
         private bool MatchesPair(ConnectedClient white, ConnectedClient black)
@@ -122,6 +124,7 @@ namespace Bogar.UI
             BlackBotNameTextBlock.Text = blackName;
 
             SetMatchState(false, false);
+            Log.Information("Tracking current match White={White} Black={Black}", whiteName, blackName);
         }
 
         private void SetMatchState(bool isRunning, bool isPaused)
@@ -148,6 +151,7 @@ namespace Bogar.UI
                 _matchStart = DateTime.Now;
                 _timer.Start();
             });
+            Log.Information("Observed game start for {White} vs {Black}", white.Nickname, black.Nickname);
         }
 
         private void OnMoveExecuted(ConnectedClient white, ConnectedClient black, Move move, BllColor moveColor)
@@ -210,6 +214,7 @@ namespace Bogar.UI
                 SetMatchState(false, false);
                 RefreshWaitingPlayers();
             });
+            Log.Information("Observed game end for {White} vs {Black}", white.Nickname, black.Nickname);
         }
 
         private void ResetBoard()
@@ -525,14 +530,17 @@ namespace Bogar.UI
                 SetCurrentMatch(white.Id, black.Id, white.Nickname, black.Nickname);
                 WaitingPlayersList.SelectedItems.Clear();
                 RefreshWaitingPlayers();
+                Log.Information("Manual match started: {White} vs {Black}", white.Nickname, black.Nickname);
             }
             else if (!string.IsNullOrEmpty(error))
             {
+                Log.Warning("Failed to start manual match {White} vs {Black}: {Error}", white.Nickname, black.Nickname, error);
                 MessageBox.Show(error,
                     "Cannot start match", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             else
             {
+                Log.Warning("Unknown error while starting manual match {White} vs {Black}", white.Nickname, black.Nickname);
                 MessageBox.Show("Unable to start the selected match.",
                     "Cannot start match", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
@@ -541,6 +549,7 @@ namespace Bogar.UI
         private void LeaveLobby_Click(object sender, RoutedEventArgs e)
         {
             _waitingRoomWindow.NavigateToStart();
+            Log.Information("Admin leaving lobby from match view");
             this.Close();
         }
 
@@ -553,11 +562,13 @@ namespace Bogar.UI
             {
                 PauseVisualTimer();
                 SetMatchState(true, true);
+                Log.Information("Match paused: {White} vs {Black}", _whiteName, _blackName);
             }
             else
             {
                 MessageBox.Show("Unable to pause the current match. It may have already finished.",
                     "Pause failed", MessageBoxButton.OK, MessageBoxImage.Information);
+                Log.Warning("Pause failed for match {White} vs {Black}", _whiteName, _blackName);
             }
         }
 
@@ -570,16 +581,19 @@ namespace Bogar.UI
             {
                 ResumeVisualTimer();
                 SetMatchState(true, false);
+                Log.Information("Match resumed: {White} vs {Black}", _whiteName, _blackName);
             }
             else
             {
                 MessageBox.Show("Unable to resume the current match. It may have already finished.",
                     "Resume failed", MessageBoxButton.OK, MessageBoxImage.Information);
+                Log.Warning("Resume failed for match {White} vs {Black}", _whiteName, _blackName);
             }
         }
         private void ViewStatistics_Click(object sender, RoutedEventArgs e)
         {
             var statisticsWindow = new AdminStatisticsWindow(_statisticsService, _lobbyName);
+            Log.Information("Viewing statistics for lobby {Lobby}", _lobbyName);
             statisticsWindow.Show();
         }
 
@@ -620,6 +634,7 @@ namespace Bogar.UI
             if (confirm != MessageBoxResult.Yes)
                 return;
 
+            Log.Information("Attempting to kick player {Player}", playerName);
             if (_server.TryKickClient(playerId, out var error))
             {
                 MessageBox.Show(
@@ -627,11 +642,13 @@ namespace Bogar.UI
                     "Kick player",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
+                Log.Information("Player kicked from match context: {Player}", playerName);
                 RefreshWaitingPlayers();
             }
             else if (!string.IsNullOrEmpty(error))
             {
                 MessageBox.Show(error, "Kick player", MessageBoxButton.OK, MessageBoxImage.Information);
+                Log.Warning("Failed to kick player {Player}: {Error}", playerName, error);
             }
             else
             {
@@ -640,6 +657,7 @@ namespace Bogar.UI
                     "Kick player",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
+                Log.Warning("Unable to kick player {Player} due to unknown error", playerName);
             }
         }
 
@@ -656,6 +674,7 @@ namespace Bogar.UI
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             _waitingRoomWindow.NavigateToStart();
+            Log.Information("Admin match window closed");
             this.Close();
         }
         private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -663,8 +682,10 @@ namespace Bogar.UI
             if (_isMatchRunning)
             {
                 _server.StopMatch(_whiteId, _blackId);
+                Log.Information("Force stopping match {White} vs {Black} before leaving", _whiteName, _blackName);
             }
             _waitingRoomWindow.Show();
+            Log.Information("Navigating back to waiting room window");
             this.Close();
         }
 
@@ -676,6 +697,7 @@ namespace Bogar.UI
             _server.GameEnded -= OnGameEnded;
             _timer.Stop();
             _waitingListTimer.Stop();
+            Log.Information("Admin match window cleaned up");
         }
 
         private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -700,5 +722,3 @@ namespace Bogar.UI
     }
 
 }
-
-

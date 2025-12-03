@@ -4,6 +4,7 @@ using System.Windows.Threading;
 using Bogar.BLL.Game;
 using Bogar.BLL.Player;
 using Bogar.BLL.Core;
+using Serilog;
 
 namespace Bogar.UI
 {
@@ -18,6 +19,7 @@ namespace Bogar.UI
         private readonly DispatcherTimer _uiTimer;
 
         private const int MoveTimeLimitSeconds = 20;
+        private static readonly Serilog.ILogger Logger = Log.ForContext<GameManager>();
 
         public event Action<Move, Color>? MoveExecuted;
         public event Action<int>? ScoreUpdated;
@@ -58,6 +60,7 @@ namespace Bogar.UI
         {
             try
             {
+                Logger.Information("Starting local game. White bot: {WhiteBot}, Black bot: {BlackBot}", whiteBotPath, blackBotPath);
                 var whitePlayer = new Player(whiteBotPath);
                 var blackPlayer = new Player(blackBotPath);
 
@@ -76,6 +79,7 @@ namespace Bogar.UI
             }
             catch (Exception ex)
             {
+                Logger.Error(ex, "Failed to start local game");
                 GameStatusChanged?.Invoke($"Failed to start game: {ex.Message}");
             }
         }
@@ -88,6 +92,7 @@ namespace Bogar.UI
             _currentGame = null;
 
             GameStatusChanged?.Invoke("Game stopped");
+            Logger.Information("Local game stopped");
         }
 
         private async Task RunGameLoopAsync()
@@ -152,6 +157,7 @@ namespace Bogar.UI
             catch (Exception ex)
             {
                 EndGame($"Move error: {ex.Message}");
+                Logger.Error(ex, "Error executing move");
             }
         }
 
@@ -177,6 +183,7 @@ namespace Bogar.UI
                     $"Хід гравця {loser} не виконано — переміг інший гравець."
                 );
             });
+            Logger.Warning("Move timeout reached for {Loser}", loser);
         }
 
         private void EndGame(string message, Color? winner = null)
@@ -193,6 +200,7 @@ namespace Bogar.UI
                 GameEnded?.Invoke(winner);
                 GameStatusChanged?.Invoke(message);
             });
+            Logger.Information("Local game ended. Winner: {Winner}. Message: {Message}", winner?.ToString() ?? "Draw/Unknown", message);
         }
 
         private static Color GetOppositeColor(Color color) =>

@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using Bogar.BLL.Networking;
 using Bogar.BLL.Core;
+using Serilog;
 
 namespace Bogar.UI
 {
@@ -38,9 +39,14 @@ namespace Bogar.UI
             _client.GameEnded += OnGameEnded;
             _client.ErrorReceived += OnError;
             _client.Disconnected += OnDisconnected;
+            Log.Information("Waiting room opened for lobby {Lobby} ({Ip}:{Port}) as {User}", lobbyName, lobbyIp, lobbyPort, userName);
         }
 
-        private void OnClientLog(string message) => Dispatcher.Invoke(() => AddStatus(message));
+        private void OnClientLog(string message)
+        {
+            Dispatcher.Invoke(() => AddStatus(message));
+            Log.Information("CLIENT: {Message}", message);
+        }
 
         private void OnMatchPreparing(string opponent)
         {
@@ -49,6 +55,7 @@ namespace Bogar.UI
                 AddStatus($"Match will start soon against {opponent}.");
                 StatusText.Text = $"Preparing match vs {opponent}";
             });
+            Log.Information("Match preparing vs {Opponent}", opponent);
         }
 
         private void OnGameStarted(string opponent, Color color)
@@ -58,6 +65,7 @@ namespace Bogar.UI
                 AddStatus($"Game started vs {opponent}. You play as {color}.");
                 StatusText.Text = $"Playing as {color} vs {opponent}";
             });
+            Log.Information("Game started vs {Opponent} as {Color}", opponent, color);
         }
 
         private void OnGameEnded(string result)
@@ -67,6 +75,7 @@ namespace Bogar.UI
                 AddStatus($"Game ended: {result}");
                 StatusText.Text = result;
             });
+            Log.Information("Game ended: {Result}", result);
         }
 
         private void OnError(string error)
@@ -85,6 +94,7 @@ namespace Bogar.UI
                 MessageBox.Show(error, "Network Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 NavigateToMainMenu();
             });
+            Log.Error("Client error received in waiting room: {Error}", error);
         }
 
         private void AddStatus(string message)
@@ -98,6 +108,7 @@ namespace Bogar.UI
         private void LeaveLobby_Click(object sender, RoutedEventArgs e)
         {
             _isLeaving = true;
+            Log.Information("Player requested leave lobby");
             NavigateToMainMenu();
         }
 
@@ -110,6 +121,7 @@ namespace Bogar.UI
 
             _navigatedToMainMenu = true;
             _client.Disconnect();
+            Log.Information("Navigating back to main menu");
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 var startWindow = new StartWindow();
@@ -135,6 +147,7 @@ namespace Bogar.UI
                 MessageBox.Show("The server has been shut down.", "Disconnected", MessageBoxButton.OK, MessageBoxImage.Information);
                 NavigateToMainMenu();
             });
+            Log.Warning("Disconnected from lobby server");
         }
 
         protected override void OnClosed(EventArgs e)
@@ -147,6 +160,7 @@ namespace Bogar.UI
             _client.ErrorReceived -= OnError;
             _client.Disconnected -= OnDisconnected;
             _client.Dispose();
+            Log.Information("Waiting room window closed");
         }
 
         private void Minimize_Click(object sender, RoutedEventArgs e)

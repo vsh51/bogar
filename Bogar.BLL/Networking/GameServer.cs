@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Linq;
+using Serilog;
 using GameInstance = Bogar.BLL.Game.Game;
 
 namespace Bogar.BLL.Networking;
@@ -23,6 +24,7 @@ public sealed class GameServer : IDisposable
     private readonly object _inGameLock = new();
     private readonly HashSet<Guid> _clientsInGame = new();
     private bool _isRunning;
+    private static readonly Serilog.ILogger Logger = Log.ForContext<GameServer>();
 
     public event Action<string>? LogMessage;
     public event Action<ConnectedClient>? ClientConnected;
@@ -48,6 +50,7 @@ public sealed class GameServer : IDisposable
         _listener.Start();
         _isRunning = true;
         LogMessage?.Invoke($"Server started on port {Port}");
+        Logger.Information("Server started on port {Port}", Port);
 
         _ = Task.Run(AcceptClientsAsync, _cancellationTokenSource.Token);
     }
@@ -85,6 +88,7 @@ public sealed class GameServer : IDisposable
         }
 
         LogMessage?.Invoke("Server stopped");
+        Logger.Information("Server stopped");
     }
 
     public IReadOnlyList<ConnectedClient> GetConnectedClients()
@@ -136,6 +140,7 @@ public sealed class GameServer : IDisposable
         }
 
         LogMessage?.Invoke($"Starting match {white.Nickname} vs {black.Nickname}");
+        Logger.Information("Starting match {White} vs {Black}", white.Nickname, black.Nickname);
 
         var matchKey = (whiteId, blackId);
         var controller = new MatchController();
@@ -153,6 +158,7 @@ public sealed class GameServer : IDisposable
             catch (Exception ex)
             {
                 LogMessage?.Invoke($"Match error: {ex.Message}");
+                Logger.Error(ex, "Match error while running {White} vs {Black}", white.Nickname, black.Nickname);
             }
             finally
             {
@@ -234,6 +240,7 @@ public sealed class GameServer : IDisposable
         catch { }
 
         LogMessage?.Invoke($"Client kicked: {client.Nickname}");
+        Logger.Information("Client {Nickname} was kicked", client.Nickname);
         return true;
     }
 
@@ -257,6 +264,7 @@ public sealed class GameServer : IDisposable
                 if (_isRunning)
                 {
                     LogMessage?.Invoke($"Accept error: {ex.Message}");
+                    Logger.Error(ex, "Failed to accept incoming client");
                 }
             }
         }
@@ -309,6 +317,7 @@ public sealed class GameServer : IDisposable
                 ackBytes, 0, ackBytes.Length, cancellationToken);
 
             LogMessage?.Invoke($"Client connected: {nickname}");
+            Logger.Information("Client connected: {Nickname}", nickname);
             ClientConnected?.Invoke(connected);
 
             await MonitorClientAsync(connected, cancellationToken);
@@ -316,6 +325,7 @@ public sealed class GameServer : IDisposable
         catch (Exception ex)
         {
             LogMessage?.Invoke($"Client error: {ex.Message}");
+            Logger.Error(ex, "Client error for ID {ClientId}", clientId);
         }
         finally
         {
@@ -328,10 +338,12 @@ public sealed class GameServer : IDisposable
                     _clientsInGame.Remove(clientId);
                 }
                 connected.Dispose();
+                Logger.Information("Client disconnected: {Nickname}", connected.Nickname);
             }
             else
             {
                 tcpClient.Dispose();
+                Logger.Information("Unregistered client {ClientId} disconnected before registration", clientId);
             }
         }
     }
@@ -348,9 +360,9 @@ public sealed class GameServer : IDisposable
                 await Task.Delay(1000, cancellationToken);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // TODO: We need to do smth.
+            Logger.Warning(ex, "Client monitor loop ended for {Nickname}", client.Nickname);
         }
     }
 
@@ -420,6 +432,7 @@ public sealed class GameServer : IDisposable
                 catch (Exception ex)
                 {
                     LogMessage?.Invoke($"Game loop error: {ex.Message}");
+                    Logger.Error(ex, "Game loop error for {White} vs {Black}", white.Nickname, black.Nickname);
                     break;
                 }
             }
@@ -465,10 +478,12 @@ public sealed class GameServer : IDisposable
                 IsAutoWin = false
             });
             LogMessage?.Invoke($"Game finished: {result}");
+            Logger.Information("Game finished: {Result}", result);
         }
         catch (Exception ex)
         {
             LogMessage?.Invoke($"Run game error: {ex.Message}");
+            Logger.Error(ex, "Run game error for {White} vs {Black}", white.Nickname, black.Nickname);
         }
     }
 

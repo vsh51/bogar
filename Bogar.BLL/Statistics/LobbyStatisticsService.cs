@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace Bogar.BLL.Statistics;
 
@@ -17,6 +18,7 @@ public sealed class LobbyStatisticsService : IDisposable
     private readonly ILobbyMatchRepository _repository;
     private readonly SemaphoreSlim _lobbyInitSemaphore = new(1, 1);
     private int? _lobbyId;
+    private static readonly Serilog.ILogger Logger = Log.ForContext<LobbyStatisticsService>();
 
     public LobbyStatisticsService(string lobbyName)
     {
@@ -30,83 +32,132 @@ public sealed class LobbyStatisticsService : IDisposable
         if (result == null)
             throw new ArgumentNullException(nameof(result));
 
-        var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
-        var whiteUserId = await _repository.EnsureUserAsync(lobbyId, result.WhiteNickname, cancellationToken);
-        var blackUserId = await _repository.EnsureUserAsync(lobbyId, result.BlackNickname, cancellationToken);
-
-        int? winnerId = result.Winner switch
+        try
         {
-            Color.White => whiteUserId,
-            Color.Black => blackUserId,
-            _ => null
-        };
+            var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
+            var whiteUserId = await _repository.EnsureUserAsync(lobbyId, result.WhiteNickname, cancellationToken);
+            var blackUserId = await _repository.EnsureUserAsync(lobbyId, result.BlackNickname, cancellationToken);
 
-        var match = new Match
+            int? winnerId = result.Winner switch
+            {
+                Color.White => whiteUserId,
+                Color.Black => blackUserId,
+                _ => null
+            };
+
+            var match = new Match
+            {
+                LobbyId = lobbyId,
+                WhiteBotId = whiteUserId,
+                BlackBotId = blackUserId,
+                WinnerId = winnerId,
+                StartTime = result.StartedAt.ToUnixTimeSeconds(),
+                FinishTime = result.FinishedAt.ToUnixTimeSeconds(),
+                IsAutoWin = result.IsAutoWin,
+                ScoreWhite = result.WhiteScore,
+                ScoreBlack = result.BlackScore,
+                Moves = string.Join(" ", result.Moves ?? Array.Empty<string>()),
+                Status = result.Status
+            };
+
+            await _repository.AddMatchAsync(match, cancellationToken);
+            Logger.Information(
+                "Recorded match in lobby {Lobby}: {White} vs {Black} winner={Winner}",
+                _lobbyName,
+                result.WhiteNickname,
+                result.BlackNickname,
+                result.Winner?.ToString() ?? "Draw");
+        }
+        catch (Exception ex)
         {
-            LobbyId = lobbyId,
-            WhiteBotId = whiteUserId,
-            BlackBotId = blackUserId,
-            WinnerId = winnerId,
-            StartTime = result.StartedAt.ToUnixTimeSeconds(),
-            FinishTime = result.FinishedAt.ToUnixTimeSeconds(),
-            IsAutoWin = result.IsAutoWin,
-            ScoreWhite = result.WhiteScore,
-            ScoreBlack = result.BlackScore,
-            Moves = string.Join(" ", result.Moves ?? Array.Empty<string>()),
-            Status = result.Status
-        };
-
-        await _repository.AddMatchAsync(match, cancellationToken);
+            Logger.Error(ex,
+                "Failed to record match for lobby {Lobby}: {White} vs {Black}",
+                _lobbyName,
+                result.WhiteNickname,
+                result.BlackNickname);
+            throw;
+        }
     }
 
     public async Task DeleteMatchAsync(int matchId, CancellationToken cancellationToken = default)
     {
-        var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
-        await _repository.DeleteMatchAsync(lobbyId, matchId, cancellationToken);
+        try
+        {
+            var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
+            await _repository.DeleteMatchAsync(lobbyId, matchId, cancellationToken);
+            Logger.Information("Deleted match {MatchId} from lobby {Lobby}", matchId, _lobbyName);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to delete match {MatchId} from lobby {Lobby}", matchId, _lobbyName);
+            throw;
+        }
     }
 
     public async Task<IReadOnlyList<MatchHistoryEntry>> GetMatchHistoryAsync(CancellationToken cancellationToken = default)
     {
-        var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
-        var matches = await _repository.GetMatchesAsync(lobbyId, cancellationToken);
+        try
+        {
+            var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
+            var matches = await _repository.GetMatchesAsync(lobbyId, cancellationToken);
 
-        return matches
-            .Select(MapHistoryEntry)
-            .ToList();
+            var result = matches
+                .Select(MapHistoryEntry)
+                .ToList();
+
+            Logger.Information("Loaded {Count} matches for lobby {Lobby}", result.Count, _lobbyName);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to load match history for lobby {Lobby}", _lobbyName);
+            throw;
+        }
     }
 
     public async Task<LobbyStatisticsSnapshot> GetLobbyStatisticsAsync(CancellationToken cancellationToken = default)
     {
-        var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
-        var matches = await _repository.GetMatchesAsync(lobbyId, cancellationToken);
-
-        if (matches.Count == 0)
+        try
         {
-            return new LobbyStatisticsSnapshot
+            var lobbyId = await EnsureLobbyIdAsync(cancellationToken);
+            var matches = await _repository.GetMatchesAsync(lobbyId, cancellationToken);
+
+            if (matches.Count == 0)
+            {
+                var emptySnapshot = new LobbyStatisticsSnapshot
+                {
+                    LobbyName = _lobbyName,
+                    PlayerStandings = Array.Empty<PlayerStanding>(),
+                    TopPerformer = null
+                };
+                Logger.Information("No matches found for lobby {Lobby} while building snapshot", _lobbyName);
+                return emptySnapshot;
+            }
+
+            var standings = BuildStandings(matches);
+            var durations = matches
+                .Where(m => m.FinishTime.HasValue)
+                .Select(m => Math.Max(0, m.FinishTime!.Value - m.StartTime!))
+                .ToList();
+
+            var snapshot = new LobbyStatisticsSnapshot
             {
                 LobbyName = _lobbyName,
-                PlayerStandings = Array.Empty<PlayerStanding>(),
-                TopPerformer = null
+                TotalMatches = matches.Count,
+                DrawMatches = matches.Count(m => m.WinnerId == null),
+                AverageDurationSeconds = durations.Count == 0 ? 0 : durations.Average(),
+                PlayerStandings = standings,
+                TopPerformer = standings.FirstOrDefault()
             };
+
+            Logger.Information("Calculated lobby snapshot for {Lobby}", _lobbyName);
+            return snapshot;
         }
-
-        var standings = BuildStandings(matches);
-        var durations = matches
-            .Where(m => m.FinishTime.HasValue)
-            .Select(m => Math.Max(0, m.FinishTime!.Value - m.StartTime!))
-            .ToList();
-
-        var snapshot = new LobbyStatisticsSnapshot
+        catch (Exception ex)
         {
-            LobbyName = _lobbyName,
-            TotalMatches = matches.Count,
-            DrawMatches = matches.Count(m => m.WinnerId == null),
-            AverageDurationSeconds = durations.Count == 0 ? 0 : durations.Average(),
-            PlayerStandings = standings,
-            TopPerformer = standings.FirstOrDefault()
-        };
-
-        return snapshot;
+            Logger.Error(ex, "Failed to build lobby statistics for {Lobby}", _lobbyName);
+            throw;
+        }
     }
 
     private async Task<int> EnsureLobbyIdAsync(CancellationToken cancellationToken)
@@ -122,6 +173,7 @@ public sealed class LobbyStatisticsService : IDisposable
             if (!_lobbyId.HasValue)
             {
                 _lobbyId = await _repository.EnsureLobbyAsync(_lobbyName, cancellationToken);
+                Logger.Information("Initialized lobby storage for {Lobby}", _lobbyName);
             }
         }
         finally
