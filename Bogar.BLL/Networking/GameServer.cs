@@ -67,7 +67,13 @@ public sealed class GameServer : IDisposable
         _isRunning = false;
         _cancellationTokenSource.Cancel();
 
-        try { _listener.Stop(); } catch { }
+        try
+        {
+            _listener.Stop();
+        }
+        catch
+        {
+        }
 
         foreach (var client in _clients.Values)
         {
@@ -76,13 +82,21 @@ public sealed class GameServer : IDisposable
                 ClientDisconnected?.Invoke(client);
                 client.Dispose();
             }
-            catch { }
+            catch
+            {
+            }
         }
         _clients.Clear();
 
         foreach (var controller in _matchControllers.Values)
         {
-            try { controller.Dispose(); } catch { }
+            try
+            {
+                controller.Dispose();
+            }
+            catch
+            {
+            }
         }
         _matchControllers.Clear();
 
@@ -235,13 +249,17 @@ public sealed class GameServer : IDisposable
         {
             client.Dispose();
         }
-        catch { }
+        catch
+        {
+        }
 
         try
         {
             ClientDisconnected?.Invoke(client);
         }
-        catch { }
+        catch
+        {
+        }
 
         LogMessage?.Invoke($"Client kicked: {client.Nickname}");
         Logger.Information("Client {Nickname} was kicked", client.Nickname);
@@ -435,7 +453,9 @@ public sealed class GameServer : IDisposable
                             MoveExecuted?.Invoke(
                                 white, black, lastMove, moveColor);
                         }
-                        catch { }
+                        catch
+                        {
+                        }
                     }
                     await Task.Delay(50, cancellationToken);
                 }
@@ -574,8 +594,21 @@ internal sealed class MatchController : IDisposable
 
     public void Dispose()
     {
-        try { _resumeEvent.Dispose(); } catch { }
-        try { MatchCancellation.Dispose(); } catch { }
+        try
+        {
+            _resumeEvent.Dispose();
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            MatchCancellation.Dispose();
+        }
+        catch
+        {
+        }
     }
 }
 
@@ -588,7 +621,20 @@ public sealed class ConnectedClient : IDisposable
 
     public void Dispose()
     {
-        try { Player?.Dispose(); } catch { }
-        try { TcpClient?.Close(); } catch { }
+        try
+        {
+            Player?.Dispose();
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            TcpClient?.Close();
+        }
+        catch
+        {
+        }
     }
 }

@@ -136,8 +136,28 @@ public sealed class NetworkPlayer : IPlayer, IDisposable
 
     public void Dispose()
     {
-        try { _sendLock.Dispose(); } catch { }
-        try { _stream.Dispose(); } catch { }
-        try { _client.Dispose(); } catch { }
+        try
+        {
+            _sendLock.Dispose();
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            _stream.Dispose();
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            _client.Dispose();
+        }
+        catch
+        {
+        }
     }
 }

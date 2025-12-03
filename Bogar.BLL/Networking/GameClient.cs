@@ -125,7 +125,9 @@ public sealed class GameClient : IDisposable
                 }
             }
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException)
+        {
+        }
         catch (IOException)
         {
             ErrorReceived?.Invoke("Server shutdown — connection closed.");
@@ -290,13 +292,43 @@ public sealed class GameClient : IDisposable
 
     public void Disconnect()
     {
-        try { _tcpClient?.Close(); } catch (Exception ex) { Logger.Debug(ex, "Error while closing TCP client"); }
+        try
+        {
+            _tcpClient?.Close();
+        }
+        catch (Exception ex)
+        {
+            Logger.Debug(ex, "Error while closing TCP client");
+        }
     }
 
     public void Dispose()
     {
-        try { _sendLock.Dispose(); } catch (Exception ex) { Logger.Debug(ex, "Error disposing sendLock"); }
-        try { _stream?.Dispose(); } catch (Exception ex) { Logger.Debug(ex, "Error disposing network stream"); }
-        try { _tcpClient?.Dispose(); } catch (Exception ex) { Logger.Debug(ex, "Error disposing TCP client"); }
+        try
+        {
+            _sendLock.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Logger.Debug(ex, "Error disposing sendLock");
+        }
+
+        try
+        {
+            _stream?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Logger.Debug(ex, "Error disposing network stream");
+        }
+
+        try
+        {
+            _tcpClient?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Logger.Debug(ex, "Error disposing TCP client");
+        }
     }
 }
