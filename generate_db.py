@@ -12,40 +12,42 @@ def create_database():
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS Lobbies (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE
+            Id INTEGER PRIMARY KEY,
+            Name TEXT
         );
         """)
         print("Таблиця 'Lobbies' створена або вже існує.")
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS Users (
-            id INTEGER PRIMARY KEY,
-            username TEXT NOT NULL UNIQUE,
-            bot_name TEXT NOT NULL,
-            bot_file_hash TEXT NOT NULL UNIQUE,
-            lobby_ref INTEGER NOT NULL,
-            FOREIGN KEY (lobby_ref) REFERENCES Lobbies (id)
+            Id INTEGER PRIMARY KEY,
+            Username TEXT,
+            BotName TEXT,
+            BotFileHash TEXT,
+            LobbyId INTEGER NOT NULL,
+            FOREIGN KEY (LobbyId) REFERENCES Lobbies (Id) ON DELETE CASCADE
         );
         """)
         print("Таблиця 'Users' створена або вже існує.")
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS Matches (
-            id INTEGER PRIMARY KEY,
-            white_bot_ref INTEGER NOT NULL,
-            black_bot_ref INTEGER NOT NULL,
-            winner_ref INTEGER,
-            start_time INTEGER,
-            finish_time INTEGER,
-            is_auto_win INTEGER,
-            score_white INTEGER,
-            score_black INTEGER,
-            moves TEXT,
-            status TEXT NOT NULL CHECK (status IN ('pending', 'in_progress', 'completed', 'failure')),
-            FOREIGN KEY (white_bot_ref) REFERENCES Users (id),
-            FOREIGN KEY (black_bot_ref) REFERENCES Users (id),
-            FOREIGN KEY (winner_ref) REFERENCES Users (id)
+            Id INTEGER PRIMARY KEY,
+            LobbyId INTEGER NOT NULL,
+            WhiteBotId INTEGER NOT NULL,
+            BlackBotId INTEGER NOT NULL,
+            WinnerId INTEGER,
+            StartTime INTEGER NOT NULL,
+            FinishTime INTEGER,
+            IsAutoWin INTEGER NOT NULL,
+            ScoreWhite INTEGER NOT NULL,
+            ScoreBlack INTEGER NOT NULL,
+            Moves TEXT,
+            Status TEXT NOT NULL CHECK (Status IN ('Pending', 'InProgress', 'Completed', 'Failure')),
+            FOREIGN KEY (LobbyId) REFERENCES Lobbies (Id) ON DELETE CASCADE,
+            FOREIGN KEY (WhiteBotId) REFERENCES Users (Id) ON DELETE RESTRICT,
+            FOREIGN KEY (BlackBotId) REFERENCES Users (Id) ON DELETE RESTRICT,
+            FOREIGN KEY (WinnerId) REFERENCES Users (Id) ON DELETE RESTRICT
         );""")
         print("Таблиця 'Matches' створена або вже існує.")
 
