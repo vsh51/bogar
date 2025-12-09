@@ -23,7 +23,8 @@ public sealed class MessageReader
         var type = (MessageType)_header[0];
         var payloadLength = BitConverter.ToInt32(_header, 1);
 
-        if (payloadLength < 0 || payloadLength > 50_000_000)
+        const int maxPayloadLength = 5 * 1024;
+        if (payloadLength < 0 || payloadLength > maxPayloadLength)
             throw new InvalidOperationException(
                 $"Invalid payload length: {payloadLength}");
 
