@@ -155,19 +155,19 @@
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Background="{StaticResource BackgroundLightBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2" CornerRadius="8" Padding="28,28,28,28">
                         <StackPanel>
-                            <TextBlock Text="LOCAL MATCH" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"/>
+                            <TextBlock Text="Local Match" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"/>
                             <TextBlock Text="White Bot:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
                             <TextBox x:Name="WhiteBotPathTextBox" Style="{StaticResource ModernTextBox}" Text="No bot selected" Margin="0,0,0,10"/>
-                            <Button Content="Browse White Bot" Style="{StaticResource SecondaryButton}" Click="BrowseWhiteBotButton_Click" HorizontalAlignment="Stretch" Margin="0,0,0,20"/>
+                            <Button Content="Browse White Bot..." Style="{StaticResource SecondaryButton}" Click="BrowseWhiteBotButton_Click" HorizontalAlignment="Stretch" Margin="0,0,0,20"/>
                             <TextBlock Text="Black Bot:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
                             <TextBox x:Name="BlackBotPathTextBox" Style="{StaticResource ModernTextBox}" Text="No bot selected" Margin="0,0,0,10"/>
-                            <Button Content="Browse Black Bot" Style="{StaticResource SecondaryButton}" Click="BrowseBlackBotButton_Click" HorizontalAlignment="Stretch" Margin="0,0,0,25"/>
+                            <Button Content="Browse Black Bot..." Style="{StaticResource SecondaryButton}" Click="BrowseBlackBotButton_Click" HorizontalAlignment="Stretch" Margin="0,0,0,25"/>
                             <Button x:Name="StartLocalGameButton" Content="▶ Start Local Match" Style="{StaticResource PrimaryButton}" Click="StartLocalGameButton_Click" HorizontalAlignment="Stretch" IsEnabled="False" Height="45" FontSize="15"/>
                         </StackPanel>
                     </Border>
                     <Border Grid.Column="2" Background="{StaticResource BackgroundLightBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2" CornerRadius="8" Padding="28,28,28,28">
                         <StackPanel>
-                            <TextBlock Text="ONLINE TOURNAMENT" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"/>
+                            <TextBlock Text="Online Tournament" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"/>
                             <TextBlock Text="Join an existing tournament or create your own to compete with other players online." FontSize="13" Foreground="{StaticResource TextLightBrush}" TextWrapping="Wrap" LineHeight="20" Margin="0,0,0,30"/>
                             <Button Content="Host Tournament" Style="{StaticResource PrimaryButton}" Click="HostTournamentButton_Click" HorizontalAlignment="Stretch" Height="45" Margin="0,0,0,15" FontSize="15"/>
                             <Button Content="Join Lobby" Style="{StaticResource SecondaryButton}" Click="JoinLobbyButton_Click" HorizontalAlignment="Stretch" Height="45" FontSize="15" Margin="0,0,0,25"/>

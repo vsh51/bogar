@@ -191,7 +191,7 @@
                             <ColumnDefinition Width="80"/>
                         </Grid.ColumnDefinitions>
                         <TextBox x:Name="BotExeTextBox" Style="{StaticResource FileTextBox}" Grid.Column="0" Margin="0,0,8,0"/>
-                        <Button Content="Browse" Style="{StaticResource BrowseButtonCompact}" Grid.Column="1" Click="BrowseBotExe_Click"/>
+                        <Button Content="Browse..." Style="{StaticResource BrowseButtonCompact}" Grid.Column="1" Click="BrowseBotExe_Click"/>
                     </Grid>
                     <TextBlock x:Name="BotExeError" Text="" Foreground="Red" FontSize="11" Margin="4,0,0,0" MinHeight="16" Visibility="Visible"/>
 
