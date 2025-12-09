@@ -1,10 +1,9 @@
 using System;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Bogar.BLL.Networking;
+using Bogar.Tests.TestHelpers;
 
 namespace Bogar.Tests.BLL.Networking;
 
@@ -67,56 +66,4 @@ public sealed class MessageReaderTests
         Assert.Contains("Stream closed unexpectedly", ex.Message);
     }
 
-    private sealed class ConnectedStreamPair : IAsyncDisposable
-    {
-        private readonly TcpClient _readerClient;
-        private readonly TcpClient _writerClient;
-        private bool _writerClosed;
-
-        private ConnectedStreamPair(TcpClient readerClient, TcpClient writerClient)
-        {
-            _readerClient = readerClient;
-            _writerClient = writerClient;
-            ReaderStream = readerClient.GetStream();
-            WriterStream = writerClient.GetStream();
-        }
-
-        public NetworkStream ReaderStream { get; }
-        public NetworkStream WriterStream { get; }
-
-        public static async Task<ConnectedStreamPair> CreateAsync()
-        {
-            var listener = new TcpListener(IPAddress.Loopback, 0);
-            listener.Start();
-
-            var client = new TcpClient();
-            var connectTask = client.ConnectAsync(
-                IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port);
-            var accepted = await listener.AcceptTcpClientAsync();
-            await connectTask;
-            listener.Stop();
-
-            return new ConnectedStreamPair(accepted, client);
-        }
-
-        public void CloseWriter()
-        {
-            if (_writerClosed)
-                return;
-
-            _writerClosed = true;
-            try { WriterStream.Dispose(); } catch { }
-            try { _writerClient.Close(); } catch { }
-            try { _writerClient.Dispose(); } catch { }
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            CloseWriter();
-            try { ReaderStream.Dispose(); } catch { }
-            try { _readerClient.Close(); } catch { }
-            try { _readerClient.Dispose(); } catch { }
-            await Task.CompletedTask;
-        }
-    }
 }
