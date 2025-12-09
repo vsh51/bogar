@@ -47,7 +47,7 @@ public class ProgramTests
 
         try
         {
-            var exitCode = Program.Main(new[] { "--fill", "--display" });
+            var exitCode = Program.Main(new[] { "--fill", "--incorrect" });
 
             Assert.Equal(1, exitCode);
             Assert.Contains("unknown options", errWriter.ToString());
@@ -275,3 +275,4 @@ public class ProgramTests
         }
     }
 }
+
